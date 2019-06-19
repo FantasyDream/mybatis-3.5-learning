@@ -26,9 +26,7 @@ import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 
 /**
- * Builds {@link SqlSession} instances.
- *
- * @author Clinton Begin
+ * 创建sqlSession的工厂建造者
  */
 public class SqlSessionFactoryBuilder {
 
@@ -43,10 +41,15 @@ public class SqlSessionFactoryBuilder {
   public SqlSessionFactory build(Reader reader, Properties properties) {
     return build(reader, null, properties);
   }
-
+  
+  /**
+   * 这个build方法是主要的实现方法，里面最主要的逻辑是解析配置文件生成SqlSessionFactory
+   * 
+   */
   public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
     try {
       XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
+      // 关键代码是paser.pase()，这个方法负责解析配置文件
       return build(parser.parse());
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error building SqlSession.", e);

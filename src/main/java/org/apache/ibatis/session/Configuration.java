@@ -95,10 +95,13 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
- * @author Clinton Begin
+ * mybatis的配置信息类，根据配置文件和mybatis的默认配置来构建
  */
 public class Configuration {
 
+  /**
+   * 对应配置信息中的Environment标签，主要用来配置datasource
+   */
   protected Environment environment;
 
   protected boolean safeRowBoundsEnabled;
@@ -570,6 +573,7 @@ public class Configuration {
   }
 
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+    // 将配置文件中的executorType在这里赋值，若配置文件中未定义或者定义为null，则为simple
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;

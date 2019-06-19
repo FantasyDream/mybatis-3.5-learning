@@ -50,8 +50,13 @@ public class DefaultSqlSession implements SqlSession {
 
   private final Configuration configuration;
   private final Executor executor;
-
+  /**
+   * 是否自动提交，打开自动提交意味者无法开启事务
+   */
   private final boolean autoCommit;
+  /**
+   * 是否有脏数据，用来判断内存中数据与数据库数据是否一致。
+   */
   private boolean dirty;
   private List<Cursor<?>> cursorList;
 
@@ -62,6 +67,12 @@ public class DefaultSqlSession implements SqlSession {
     this.autoCommit = autoCommit;
   }
 
+  /**
+   * 默认不打开自动提交
+   *
+   * @param configuration mybatis设置类，在此处主要用于获取sql语句
+   * @param executor sql执行器，最终执行sql的类
+   */
   public DefaultSqlSession(Configuration configuration, Executor executor) {
     this(configuration, executor, false);
   }
@@ -193,8 +204,11 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public int update(String statement, Object parameter) {
     try {
+      // 表明数据不一致，需要更新内存中的数据
       dirty = true;
+      // 通过statement的id找到对应的sql语句
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行该语句
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
@@ -317,6 +331,12 @@ public class DefaultSqlSession implements SqlSession {
     return (!autoCommit && dirty) || force;
   }
 
+  /**
+   * 将数组或者Collection类型的参数转换成map
+   *
+   * @param object DAO方法的参数
+   * @return 转换后的map或者原参数
+   */
   private Object wrapCollection(final Object object) {
     if (object instanceof Collection) {
       StrictMap<Object> map = new StrictMap<>();

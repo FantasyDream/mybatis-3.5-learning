@@ -25,12 +25,29 @@ import java.sql.SQLException;
  */
 public class BooleanTypeHandler extends BaseTypeHandler<Boolean> {
 
+  /**
+   * 构建PreparedStatement时，在对应的位置，set对应的类型
+   *
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Boolean parameter, JdbcType jdbcType)
       throws SQLException {
     ps.setBoolean(i, parameter);
   }
 
+  /**
+   * 根据列名，来获取Boolean类型
+   *
+   * @param rs
+   * @param columnName
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Boolean getNullableResult(ResultSet rs, String columnName)
       throws SQLException {
@@ -38,6 +55,14 @@ public class BooleanTypeHandler extends BaseTypeHandler<Boolean> {
     return !result && rs.wasNull() ? null : result;
   }
 
+  /**
+   * 根据列的位数，获取boolean类型的数据
+   *
+   * @param rs
+   * @param columnIndex
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Boolean getNullableResult(ResultSet rs, int columnIndex)
       throws SQLException {
@@ -45,6 +70,14 @@ public class BooleanTypeHandler extends BaseTypeHandler<Boolean> {
     return !result && rs.wasNull() ? null : result;
   }
 
+  /**
+   * 在存储过程的结果中，获取Boolean类型的数据
+   *
+   * @param cs
+   * @param columnIndex
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Boolean getNullableResult(CallableStatement cs, int columnIndex)
       throws SQLException {

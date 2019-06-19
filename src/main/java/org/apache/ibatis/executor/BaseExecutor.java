@@ -235,11 +235,13 @@ public abstract class BaseExecutor implements Executor {
 
   @Override
   public void commit(boolean required) throws SQLException {
+    // 如果连接关闭，抛出异常
     if (closed) {
       throw new ExecutorException("Cannot commit, transaction is already closed");
     }
     clearLocalCache();
     flushStatements();
+    // 参数为true，提交事务
     if (required) {
       transaction.commit();
     }

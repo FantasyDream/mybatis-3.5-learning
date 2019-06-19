@@ -90,18 +90,26 @@ public class XMLConfigBuilder extends BaseBuilder {
     this.parser = parser;
   }
 
+  /**
+   * SqlSessionFactoryBuilder调用的方法就是这个，在解析之前，会判断是否已经解析过配置文件。
+   */
   public Configuration parse() {
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // 通过配置文件的内容构建Configuration类
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
+  /**
+   * 该方法逻辑很简单，根据关键字一步一步解析配置文件，并构建Configuration类
+   * @param root
+   */
   private void parseConfiguration(XNode root) {
     try {
-      //issue #117 read properties first
+      // 先解析properties元素
       propertiesElement(root.evalNode("properties"));
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
@@ -112,7 +120,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
-      // read it after objectFactory and objectWrapperFactory issue #631
+      // 再解析environment元素
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
       typeHandlerElement(root.evalNode("typeHandlers"));
@@ -127,7 +135,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       return new Properties();
     }
     Properties props = context.getChildrenAsProperties();
-    // Check that all settings are known to the configuration class
+    // 检查Configuration类中的Setting是否合法。
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -220,22 +228,29 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 将该节点的子节点聚合生成Properties对象
       Properties defaults = context.getChildrenAsProperties();
+      // 查看外部resource文件配置与内部property配置是否同时存在，若同时存在，则报异常。
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
-        throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
+        throw new BuilderException(
+            "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
+      // 将resource或者properties中的信息放入Properties对象中。
       if (resource != null) {
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+      // 将剩余的节点信息放入properties对象中。
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
       }
+      // 放到parser对象中备用。
       parser.setVariables(defaults);
+      // 将获得到的信息放入configuration中。
       configuration.setVariables(defaults);
     }
   }
