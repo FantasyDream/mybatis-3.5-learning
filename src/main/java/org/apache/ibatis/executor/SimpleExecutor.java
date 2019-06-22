@@ -47,6 +47,7 @@ public class SimpleExecutor extends BaseExecutor {
       Configuration configuration = ms.getConfiguration();
       StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
       stmt = prepareStatement(handler, ms.getStatementLog());
+      // 委托给StatementHandler执行sql
       return handler.update(stmt);
     } finally {
       closeStatement(stmt);

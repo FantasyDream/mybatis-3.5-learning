@@ -32,10 +32,25 @@ import org.w3c.dom.NodeList;
 public class XNode {
 
   private final Node node;
+  /**
+   * node节点名称
+   */
   private final String name;
+  /**
+   * node节点的内容
+   */
   private final String body;
+  /**
+   * 节点属性的集合
+   */
   private final Properties attributes;
+  /**
+   * <properties></properties>中定义的键值对
+   */
   private final Properties variables;
+  /**
+   * 该node对象由这个对象生成
+   */
   private final XPathParser xpathParser;
 
   public XNode(XPathParser xpathParser, Node node, Properties variables) {
@@ -353,6 +368,7 @@ public class XNode {
     if (attributeNodes != null) {
       for (int i = 0; i < attributeNodes.getLength(); i++) {
         Node attribute = attributeNodes.item(i);
+        // 用PropertyParser处理属性中的占位符
         String value = PropertyParser.parse(attribute.getNodeValue(), variables);
         attributes.put(attribute.getNodeName(), value);
       }
@@ -362,6 +378,7 @@ public class XNode {
 
   private String parseBody(Node node) {
     String data = getBodyData(node);
+    // 判断是否为文本节点
     if (data == null) {
       NodeList children = node.getChildNodes();
       for (int i = 0; i < children.getLength(); i++) {
@@ -376,9 +393,11 @@ public class XNode {
   }
 
   private String getBodyData(Node child) {
+    // 只处理文本内容
     if (child.getNodeType() == Node.CDATA_SECTION_NODE
         || child.getNodeType() == Node.TEXT_NODE) {
       String data = ((CharacterData) child).getData();
+      // 用PropertyParser处理文本中的占位符
       data = PropertyParser.parse(data, variables);
       return data;
     }

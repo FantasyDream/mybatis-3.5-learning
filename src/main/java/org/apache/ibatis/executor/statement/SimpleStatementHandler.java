@@ -48,6 +48,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
+      // 委托给Statement执行sql， Statement即为jdbc中的Statement，在执行sql前，mybatis做的操作到此结束
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
       rows = statement.getUpdateCount();
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);

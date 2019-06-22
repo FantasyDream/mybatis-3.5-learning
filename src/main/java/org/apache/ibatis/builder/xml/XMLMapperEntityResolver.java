@@ -43,8 +43,8 @@ public class XMLMapperEntityResolver implements EntityResolver {
   /**
    * Converts a public DTD into a local one
    *
-   * @param publicId The public id that is what comes after "PUBLIC"
-   * @param systemId The system id that is what comes after the public id.
+   * @param publicId 在PUBLIC等号后面的url
+   * @param systemId 在publicId后面的url
    * @return The InputSource for the DTD
    *
    * @throws org.xml.sax.SAXException If anything goes wrong
@@ -54,6 +54,7 @@ public class XMLMapperEntityResolver implements EntityResolver {
     try {
       if (systemId != null) {
         String lowerCaseSystemId = systemId.toLowerCase(Locale.ENGLISH);
+        // 查找systemId指定的DTD文档，并调用getInputSource()来读取DTD文档
         if (lowerCaseSystemId.contains(MYBATIS_CONFIG_SYSTEM) || lowerCaseSystemId.contains(IBATIS_CONFIG_SYSTEM)) {
           return getInputSource(MYBATIS_CONFIG_DTD, publicId, systemId);
         } else if (lowerCaseSystemId.contains(MYBATIS_MAPPER_SYSTEM) || lowerCaseSystemId.contains(IBATIS_MAPPER_SYSTEM)) {

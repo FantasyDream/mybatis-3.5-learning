@@ -25,25 +25,25 @@ public class PropertyParser {
 
   private static final String KEY_PREFIX = "org.apache.ibatis.parsing.PropertyParser.";
   /**
-   * The special property key that indicate whether enable a default value on placeholder.
-   * <p>
-   *   The default value is {@code false} (indicate disable a default value on placeholder)
-   *   If you specify the {@code true}, you can specify key and default value on placeholder (e.g. {@code ${db.username:postgres}}).
-   * </p>
+   * 在 mybatis-config.xml 中＜properties＞节点下配置是否开启默认值功能的对应配置项
    * @since 3.4.2
    */
   public static final String KEY_ENABLE_DEFAULT_VALUE = KEY_PREFIX + "enable-default-value";
 
   /**
-   * The special property key that specify a separator for key and default value on placeholder.
-   * <p>
-   *   The default separator is {@code ":"}.
-   * </p>
+   * 配置占位符与默认值之间的默认分隔符的对应配置项
    * @since 3.4.2
    */
   public static final String KEY_DEFAULT_VALUE_SEPARATOR = KEY_PREFIX + "default-value-separator";
 
+  /**
+   * 默认情况下,关闭默认值功能
+   */
   private static final String ENABLE_DEFAULT_VALUE = "false";
+
+  /**
+   * 默认分隔符是冒号
+   */
   private static final String DEFAULT_VALUE_SEPARATOR = ":";
 
   private PropertyParser() {
@@ -52,6 +52,7 @@ public class PropertyParser {
 
   public static String parse(String string, Properties variables) {
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+    // 创建GenericTokenParser对象,并指定其处理的占位符格式为"${}"
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
     return parser.parse(string);
   }
@@ -75,17 +76,23 @@ public class PropertyParser {
     public String handleToken(String content) {
       if (variables != null) {
         String key = content;
+        // 判断是否支持占位符中使用默认值功能
         if (enableDefaultValue) {
+          // 查找分隔符
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
           if (separatorIndex >= 0) {
+            // 获取占位符名称
             key = content.substring(0, separatorIndex);
+            // 货物默认值
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
           if (defaultValue != null) {
+            // 在variables集合中查找指定的占位符
             return variables.getProperty(key, defaultValue);
           }
         }
+        // 不支持默认值的功能.则直接查找variables集合
         if (variables.containsKey(key)) {
           return variables.getProperty(key);
         }

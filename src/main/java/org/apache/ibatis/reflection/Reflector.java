@@ -39,32 +39,59 @@ import org.apache.ibatis.reflection.invoker.SetFieldInvoker;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 
 /**
- * This class represents a cached set of class definition information that
- * allows for easy mapping between property names and getter/setter methods.
+ * 该类为mybatis反射模块的基础,一个Reflector对象对应一个类,该类的实例缓存了反射操作需要使用的类的元信息.
  *
  * @author Clinton Begin
  */
 public class Reflector {
-
+  /**
+   * 对应的Class
+   */
   private final Class<?> type;
+  /**
+   * 可读属性的名称集合,可读属性就是存在相应getter方法的属性
+   */
   private final String[] readablePropertyNames;
+  /**
+   * 可写属性的名称集合,可写属性就是存在相应setter方法的属性
+   */
   private final String[] writeablePropertyNames;
+  /**
+   * setter方法的缓存,key是属性名称,value是setter方法对应的Method对象的封装Invoker
+   */
   private final Map<String, Invoker> setMethods = new HashMap<>();
+  /**
+   * getter方法的缓存,key是属性名称,value是getter方法对应的Method对象的封装Invoker
+   */
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  /**
+   * 记录setter方法的参数类型,key是属性名称,value是setter方法的参数类型
+   */
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  /**
+   * 记录getter方法的返回值类型,key是属性名称,value是getter方法的返回值类型
+   */
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  /**
+   * 默认构造方法,即无参构造方法
+   */
   private Constructor<?> defaultConstructor;
-
+  /**
+   * 所有属性的集合,,key为大写的属性名,value为属性名
+   */
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
+    // 初始化各个字段
     type = clazz;
     addDefaultConstructor(clazz);
     addGetMethods(clazz);
     addSetMethods(clazz);
+    // 处理没有getter/setter方法的字段
     addFields(clazz);
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
+    // 通过map消除重复的元素
     for (String propName : readablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
@@ -99,6 +126,10 @@ public class Reflector {
     resolveGetterConflicts(conflictingGetters);
   }
 
+  /**
+   * 处理子类覆盖父类方法时,返回值不同导致同一方法数量大于一个的情况
+   * @param conflictingGetters
+   */
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
@@ -108,6 +139,7 @@ public class Reflector {
           winner = candidate;
           continue;
         }
+        // 判断两个方法的返回值类型是否相同
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
         if (candidateType.equals(winnerType)) {
@@ -280,27 +312,25 @@ public class Reflector {
   }
 
   /**
-   * This method returns an array containing all methods
-   * declared in this class and any superclass.
-   * We use this method, instead of the simpler Class.getMethods(),
-   * because we want to look for private methods as well.
+   * 获取一个类的所有Method,包括父类和接口的Method.
    *
-   * @param cls The class
-   * @return An array containing all methods in this class
+   * @param cls 类
+   * @return 包含所有method的数组
    */
   private Method[] getClassMethods(Class<?> cls) {
     Map<String, Method> uniqueMethods = new HashMap<>();
     Class<?> currentClass = cls;
     while (currentClass != null && currentClass != Object.class) {
+      // 记录当前类定义的所有方法,并为每个方法生成唯一签名
       addUniqueMethods(uniqueMethods, currentClass.getDeclaredMethods());
 
-      // we also need to look for interface methods -
-      // because the class may be abstract
+      // 记录接口中的方法,因为当前类可能是抽象类
       Class<?>[] interfaces = currentClass.getInterfaces();
       for (Class<?> anInterface : interfaces) {
         addUniqueMethods(uniqueMethods, anInterface.getMethods());
       }
 
+      // 获取父类,继续循环
       currentClass = currentClass.getSuperclass();
     }
 
@@ -312,6 +342,7 @@ public class Reflector {
   private void addUniqueMethods(Map<String, Method> uniqueMethods, Method[] methods) {
     for (Method currentMethod : methods) {
       if (!currentMethod.isBridge()) {
+        // 生成签名
         String signature = getSignature(currentMethod);
         // check to see if the method is already known
         // if it is known, then an extended class must have
@@ -323,6 +354,11 @@ public class Reflector {
     }
   }
 
+  /**
+   * 生成的签名格式为: 返回值类型#方法名称:参数类型列表
+   * @param method
+   * @return
+   */
   private String getSignature(Method method) {
     StringBuilder sb = new StringBuilder();
     Class<?> returnType = method.getReturnType();

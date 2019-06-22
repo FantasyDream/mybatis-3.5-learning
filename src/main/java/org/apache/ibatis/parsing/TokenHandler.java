@@ -16,6 +16,7 @@
 package org.apache.ibatis.parsing;
 
 /**
+ * 该接口用于解析占位符的内容,不同的实现类解析不同的占位符,类似于策略模式
  * @author Clinton Begin
  */
 public interface TokenHandler {

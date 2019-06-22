@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
+ * 通过对jdk自带的Document等类的封装,提供一系列更方便的对mybatis的xml格式的配置文件的解析方法
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -227,8 +228,9 @@ public class XPathParser {
   }
 
   private Document createDocument(InputSource inputSource) {
-    // important: this must only be called AFTER common constructor
+    // 调用createDocument()之前必须先调用commonConstructor()方法完成初始化
     try {
+      // 创建DocumentBuilder并配置
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setValidating(validation);
 
@@ -255,6 +257,7 @@ public class XPathParser {
         public void warning(SAXParseException exception) throws SAXException {
         }
       });
+      // 加载XML配置
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);

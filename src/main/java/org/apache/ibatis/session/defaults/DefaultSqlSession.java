@@ -236,6 +236,7 @@ public class DefaultSqlSession implements SqlSession {
   public void commit(boolean force) {
     try {
       executor.commit(isCommitOrRollbackRequired(force));
+      // 提交之后内存与数据库数据一致，所以dirty置为false
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
