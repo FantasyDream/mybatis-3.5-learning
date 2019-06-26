@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.ibatis.demo.mapper.AdminMapper">
+
+    <select id="get" parameterType="java.lang.Long" resultType="org.apache.ibatis.demo.model.Admin">
+        select id, email, create_time, modify_time
+        from t_admin
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="getByEmailAndPassword" resultType="org.apache.ibatis.demo.model.Admin">
+        select id, email, password
+        from t_admin
+        where email = #{email} and password = #{password}
+    </select>
+    <select id="getByEmail" resultType="org.apache.ibatis.demo.model.Admin">
+        select id, email, password
+        from t_admin
+        where email = #{0}
+    </select>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        delete
+        from t_admin
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="org.apache.ibatis.demo.model.Admin"
+            useGeneratedKeys="true">
+        insert into t_admin (email, password)
+        values (#{email,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="update" parameterType="org.apache.ibatis.demo.model.Admin">
+        update t_admin
+        <set>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>
