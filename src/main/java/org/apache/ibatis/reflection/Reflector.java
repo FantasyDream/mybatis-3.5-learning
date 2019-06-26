@@ -91,7 +91,7 @@ public class Reflector {
     addFields(clazz);
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
-    // 通过map消除重复的元素
+    // 通过map消除重复的元素，获得拥有所有属性的集合
     for (String propName : readablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
@@ -109,17 +109,26 @@ public class Reflector {
     }
   }
 
+  /**
+   * 添加所有getter方法
+   * @param cls 当前类型
+   */
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    // 获取该类型所有方法
     Method[] methods = getClassMethods(cls);
     for (Method method : methods) {
+      // 有参数的method跳过
       if (method.getParameterTypes().length > 0) {
         continue;
       }
       String name = method.getName();
+      // 以get和is开头的方法添加到conflictingGetters
       if ((name.startsWith("get") && name.length() > 3)
           || (name.startsWith("is") && name.length() > 2)) {
+        // 从方法名中截取出属性名
         name = PropertyNamer.methodToProperty(name);
+        // 将name和method作为key和value放入conflictingGetters中
         addMethodConflict(conflictingGetters, name, method);
       }
     }
@@ -142,34 +151,44 @@ public class Reflector {
         // 判断两个方法的返回值类型是否相同
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
+        // 当返回值相同时，一般要抛出异常，但是有特例。
         if (candidateType.equals(winnerType)) {
+          // 若不是Boolean类型，则抛出异常，因为Boolean型的getter和setter可能会出现同时有isXXX和getXXX的现象。
           if (!boolean.class.equals(candidateType)) {
             throw new ReflectionException(
                 "Illegal overloaded getter method with ambiguous type for property "
                     + propName + " in class " + winner.getDeclaringClass()
                     + ". This breaks the JavaBeans specification and can cause unpredictable results.");
           } else if (candidate.getName().startsWith("is")) {
+            // 选择isXXX为getter方法
             winner = candidate;
           }
         } else if (candidateType.isAssignableFrom(winnerType)) {
-          // OK getter type is descendant
+          // 若winnerType是candidateType的子类，则什么都不用做
         } else if (winnerType.isAssignableFrom(candidateType)) {
+          // 反之，winnerType切换成当前类，这是为了符合java的override规则
           winner = candidate;
         } else {
+          // 返回值完全没有关联，二义性，抛出异常
           throw new ReflectionException(
               "Illegal overloaded getter method with ambiguous type for property "
                   + propName + " in class " + winner.getDeclaringClass()
                   + ". This breaks the JavaBeans specification and can cause unpredictable results.");
         }
       }
+      // 将getter方法和方法返回值放入getMethods和getTypes中
       addGetMethod(propName, winner);
     }
   }
 
   private void addGetMethod(String name, Method method) {
+    // 检测属性是否合法
     if (isValidPropertyName(name)) {
+      // 将属性名和对应的MethodInvoker添加到getMethods中
       getMethods.put(name, new MethodInvoker(method));
+      // 获取返回值的type
       Type returnType = TypeParameterResolver.resolveReturnType(method, type);
+      // 将属性名称和返回值添加到getTypes中
       getTypes.put(name, typeToClass(returnType));
     }
   }
@@ -189,6 +208,13 @@ public class Reflector {
     resolveSetterConflicts(conflictingSetters);
   }
 
+  /**
+   * 以属性名为key，对应的方法组成的数组为value，存入map中
+   *
+   * @param conflictingMethods
+   * @param name
+   * @param method
+   */
   private void addMethodConflict(Map<String, List<Method>> conflictingMethods, String name, Method method) {
     List<Method> list = conflictingMethods.computeIfAbsent(name, k -> new ArrayList<>());
     list.add(method);
@@ -271,21 +297,23 @@ public class Reflector {
   }
 
   private void addFields(Class<?> clazz) {
+    // 获得clazz的所有字段
     Field[] fields = clazz.getDeclaredFields();
     for (Field field : fields) {
+      // 若setMethods不存在该属性时，则将它添加到setMethods和setTypes中
       if (!setMethods.containsKey(field.getName())) {
-        // issue #379 - removed the check for final because JDK 1.5 allows
-        // modification of final fields through reflection (JSR-133). (JGB)
-        // pr #16 - final static can only be set by the classloader
         int modifiers = field.getModifiers();
+        // 排除被final和static修饰的字段
         if (!(Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers))) {
           addSetField(field);
         }
       }
+      // 若getMethods不存在该属性时，则将它添加到setMethods和setTypes中
       if (!getMethods.containsKey(field.getName())) {
         addGetField(field);
       }
     }
+    // 处理父类中的字段
     if (clazz.getSuperclass() != null) {
       addFields(clazz.getSuperclass());
     }
