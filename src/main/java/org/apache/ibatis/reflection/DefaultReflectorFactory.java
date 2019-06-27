@@ -39,6 +39,7 @@ public class DefaultReflectorFactory implements ReflectorFactory {
   public Reflector findForClass(Class<?> type) {
     if (classCacheEnabled) {
             // synchronized (type) removed see issue #461
+      // 使用computeIfAbsent方法，再type的value为null时，调用Reflector::new 方法创建对象，实际代码为new Reflector(type)
       return reflectorMap.computeIfAbsent(type, Reflector::new);
     } else {
       return new Reflector(type);

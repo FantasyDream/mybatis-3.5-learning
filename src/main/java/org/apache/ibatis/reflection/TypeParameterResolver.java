@@ -31,18 +31,23 @@ import java.util.Arrays;
 public class TypeParameterResolver {
 
   /**
-   * @return The field type as {@link Type}. If it has type parameters in the declaration,<br>
-   *         they will be resolved to the actual runtime {@link Type}s.
+   * 解析字段的类型--Type，并返回。Type是Class的接口，只有一个返回类型名称的方法。
+   *
+   * @return 字段类型
    */
   public static Type resolveFieldType(Field field, Type srcType) {
+    // 获取字段的声明类型
     Type fieldType = field.getGenericType();
+    // 获取字段所在类的Class对象
     Class<?> declaringClass = field.getDeclaringClass();
+    // 后续处理
     return resolveType(fieldType, srcType, declaringClass);
   }
 
   /**
-   * @return The return type of the method as {@link Type}. If it has type parameters in the declaration,<br>
-   *         they will be resolved to the actual runtime {@link Type}s.
+   * 解析Class的返回值类型，具体实现与resolveFieldType相同
+   *
+   * @return 返回值类型
    */
   public static Type resolveReturnType(Method method, Type srcType) {
     Type returnType = method.getGenericReturnType();
@@ -51,8 +56,9 @@ public class TypeParameterResolver {
   }
 
   /**
-   * @return The parameter types of the method as an array of {@link Type}s. If they have type parameters in the declaration,<br>
-   *         they will be resolved to the actual runtime {@link Type}s.
+   * 解析参数的类型，与resolveFieldType和resolveReturnType具体实现类似
+   *
+   * @return 参数类型数组
    */
   public static Type[] resolveParamTypes(Method method, Type srcType) {
     Type[] paramTypes = method.getGenericParameterTypes();
@@ -64,7 +70,16 @@ public class TypeParameterResolver {
     return result;
   }
 
+  /**
+   * 真正解析类型的方法
+   *
+   * @param type 字段，返回值或者方法参数的类型
+   * @param srcType 查找该字段、返回值或方法参数的起始位置
+   * @param declaringClass 字段，返回值或者方法参数所在的类
+   * @return 解析后的类型
+   */
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
+    // 解析TypeVariable类型，TypeVariable类型表示的是类型变量，
     if (type instanceof TypeVariable) {
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
     } else if (type instanceof ParameterizedType) {

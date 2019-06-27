@@ -15,6 +15,11 @@
  */
 package org.apache.ibatis.reflection;
 
+/**
+ * 这是Reflector的工厂接口，它的实现类需要实现三个功能，打开缓存功能，查看是否会缓存，和创建Reflector
+ *
+ * @author mybatis
+ */
 public interface ReflectorFactory {
 
   /**
