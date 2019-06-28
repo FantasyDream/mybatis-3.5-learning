@@ -79,12 +79,14 @@ public class TypeParameterResolver {
    * @return 解析后的类型
    */
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
-    // 解析TypeVariable类型，TypeVariable类型表示的是类型变量，
+    // 解析TypeVariable类型，TypeVariable类型表示的是类型变量，如List<T>中的T就是类型变量
     if (type instanceof TypeVariable) {
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
     } else if (type instanceof ParameterizedType) {
+      // 解析ParameterizedType类型，ParameterizedType类型表示的是参数化类型，例如List<String>
       return resolveParameterizedType((ParameterizedType) type, srcType, declaringClass);
     } else if (type instanceof GenericArrayType) {
+      // 解析GenericArrayType类型，GenericArrayType类型表示的是组成类型为TypeVariable或ParameterizedType类型的数组类型
       return resolveGenericArrayType((GenericArrayType) type, srcType, declaringClass);
     } else {
       return type;
@@ -109,9 +111,13 @@ public class TypeParameterResolver {
   }
 
   private static ParameterizedType resolveParameterizedType(ParameterizedType parameterizedType, Type srcType, Class<?> declaringClass) {
+    // 获得原始类型对应的对象，ParameterizedType.getRawType()返回的是参数类型的原类型，如Map<K,V>返回的是Map
     Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+    // 获得类型变量对应的对象，ParameterizedType.getActualTypeArguments()返回的是参数类型中的类型变量，如Map<K,V>返回的是K，V组成的数组
     Type[] typeArgs = parameterizedType.getActualTypeArguments();
+    // 用于保存解析后的结果
     Type[] args = new Type[typeArgs.length];
+    // 逐个解析typeArgs中的元素，解析过程与ResolveType基本一样
     for (int i = 0; i < typeArgs.length; i++) {
       if (typeArgs[i] instanceof TypeVariable) {
         args[i] = resolveTypeVar((TypeVariable<?>) typeArgs[i], srcType, declaringClass);
@@ -123,6 +129,7 @@ public class TypeParameterResolver {
         args[i] = typeArgs[i];
       }
     }
+    // 将解析结果封装成TypeParameterResolver中定义的ParameterizedType实现并返回
     return new ParameterizedTypeImpl(rawType, null, args);
   }
 
@@ -151,6 +158,7 @@ public class TypeParameterResolver {
   private static Type resolveTypeVar(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass) {
     Type result = null;
     Class<?> clazz = null;
+    // 判断srcType是哪种Type类型，以此来确定clazz
     if (srcType instanceof Class) {
       clazz = (Class<?>) srcType;
     } else if (srcType instanceof ParameterizedType) {
@@ -160,38 +168,51 @@ public class TypeParameterResolver {
       throw new IllegalArgumentException("The 2nd arg must be Class or ParameterizedType, but was: " + srcType.getClass());
     }
 
+    // 判断clazz是否是type所在的类，即type是否是在clazz中定义的
     if (clazz == declaringClass) {
+      // 获取typeVar的上边界，上边界即typeVar的类型所继承的类
       Type[] bounds = typeVar.getBounds();
+      // 返回第一个继承的类
       if(bounds.length > 0) {
         return bounds[0];
       }
+      // 若不存在上边界，则返回Object.class
       return Object.class;
     }
 
+    // 获取声明的父类类型
     Type superclass = clazz.getGenericSuperclass();
+    // 通过扫描父类进行解析，scanSupperTypes是递归调用
     result = scanSuperTypes(typeVar, srcType, declaringClass, clazz, superclass);
     if (result != null) {
       return result;
     }
 
+    // 获取声明的接口
     Type[] superInterfaces = clazz.getGenericInterfaces();
+    // 透过过扫描接口进行解析，逻辑与父类相同
     for (Type superInterface : superInterfaces) {
       result = scanSuperTypes(typeVar, srcType, declaringClass, clazz, superInterface);
       if (result != null) {
         return result;
       }
     }
+
+    // 若整个继承结构中都没有解析成功，则返回object
     return Object.class;
   }
 
   private static Type scanSuperTypes(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass, Class<?> clazz, Type superclass) {
     if (superclass instanceof ParameterizedType) {
+        // 如果superclass是参数化类型，则强转，并取出它的原始类型和参数类型
       ParameterizedType parentAsType = (ParameterizedType) superclass;
       Class<?> parentAsClass = (Class<?>) parentAsType.getRawType();
       TypeVariable<?>[] parentTypeVars = parentAsClass.getTypeParameters();
       if (srcType instanceof ParameterizedType) {
+        // 如果srcType是参数化类型则需要进行转换，将可能存在的如List<T>中的T转为真正的Class对象
         parentAsType = translateParentTypeVars((ParameterizedType) srcType, clazz, parentAsType);
       }
+      // 如果字段或者方法所在的类与父类相同，即字段或者方法是在当前类中定义的，则找出parentAsType对应的
       if (declaringClass == parentAsClass) {
         for (int i = 0; i < parentTypeVars.length; i++) {
           if (typeVar == parentTypeVars[i]) {
@@ -209,11 +230,15 @@ public class TypeParameterResolver {
   }
 
   private static ParameterizedType translateParentTypeVars(ParameterizedType srcType, Class<?> srcClass, ParameterizedType parentType) {
+    // 获取parentType的参数列表，这个参数列表一般是参数变量的，这个方法要做的就是要尽量把参数变量转为Class
     Type[] parentTypeArgs = parentType.getActualTypeArguments();
+    // 获取srcType的参数类型，srcType是从最初的resolveXXX()方法一路进来的变量，他的参数类型一般会是真正的Class类型
     Type[] srcTypeArgs = srcType.getActualTypeArguments();
+    // 获取srcType的参数变量，用于与parentTypeArgs对比，将parentTypeArgs中与srcTypeVars相同的转换为对应的srcTypeArgs
     TypeVariable<?>[] srcTypeVars = srcClass.getTypeParameters();
     Type[] newParentArgs = new Type[parentTypeArgs.length];
     boolean noChange = true;
+    // 通过嵌套循环，将parentType中与srcTypeVars中相同的元素转换为对应的srcTypeArgs
     for (int i = 0; i < parentTypeArgs.length; i++) {
       if (parentTypeArgs[i] instanceof TypeVariable) {
         for (int j = 0; j < srcTypeVars.length; j++) {
@@ -226,6 +251,8 @@ public class TypeParameterResolver {
         newParentArgs[i] = parentTypeArgs[i];
       }
     }
+    // 如果经过对比parentTypeArgs没有变化，则说明parentType不需要解析，直接返回；
+    // 若有变化，则返回新构建的ParameterizedType，这个ParameterizedTypeImpl是内部类
     return noChange ? parentType : new ParameterizedTypeImpl((Class<?>)parentType.getRawType(), null, newParentArgs);
   }
 

@@ -40,7 +40,7 @@ public interface ReflectorFactory {
    * 创建指定Class对应的Reflector对象
    *
    * @param type 需要创建Reflector的类
-   * @return Reflector
+   * @return reflector
    */
   Reflector findForClass(Class<?> type);
 }
