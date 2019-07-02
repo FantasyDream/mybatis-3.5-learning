@@ -15,6 +15,10 @@
  */
 package org.apache.ibatis.reflection;
 
+import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import sun.reflect.generics.reflectiveObjects.WildcardTypeImpl;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -23,7 +27,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Iwao AVE!
@@ -93,19 +99,32 @@ public class TypeParameterResolver {
     }
   }
 
+  /**
+   * 解析GenericArrayType类型，GenericArrayType类型表示的是组成类型为TypeVariable或ParameterizedType类型的数组类型
+   *
+   * @param genericArrayType 要解析的变量
+   * @param srcType          定位的类，解析的起始点
+   * @param declaringClass   定义字段或方法的类
+   * @return
+   */
   private static Type resolveGenericArrayType(GenericArrayType genericArrayType, Type srcType, Class<?> declaringClass) {
+    // 获取数组元素的类型
     Type componentType = genericArrayType.getGenericComponentType();
     Type resolvedComponentType = null;
+    // 与resolveType的处理一致
     if (componentType instanceof TypeVariable) {
       resolvedComponentType = resolveTypeVar((TypeVariable<?>) componentType, srcType, declaringClass);
     } else if (componentType instanceof GenericArrayType) {
+      // 递归调用
       resolvedComponentType = resolveGenericArrayType((GenericArrayType) componentType, srcType, declaringClass);
     } else if (componentType instanceof ParameterizedType) {
       resolvedComponentType = resolveParameterizedType((ParameterizedType) componentType, srcType, declaringClass);
     }
+    // 根据解析后的数组项类型构造返回类型
     if (resolvedComponentType instanceof Class) {
       return Array.newInstance((Class<?>) resolvedComponentType, 0).getClass();
     } else {
+      // GenericArrayTypeImpl是TypeParameterResolver的内部类，实现了GenericArrayType接口
       return new GenericArrayTypeImpl(resolvedComponentType);
     }
   }
@@ -133,12 +152,30 @@ public class TypeParameterResolver {
     return new ParameterizedTypeImpl(rawType, null, args);
   }
 
+  /**
+   * 处理WildcardType类型的变量，WildcardType表示的是通配符泛型，例如？extends Number 和？ super Integer
+   *
+   * @param wildcardType    要解析的类型
+   * @param srcType         解析开始的类
+   * @param declaringClass  定义了要解析的类型的类
+   * @return 解析好的变量
+   */
   private static Type resolveWildcardType(WildcardType wildcardType, Type srcType, Class<?> declaringClass) {
+    // 解析wildcardType的下边界
     Type[] lowerBounds = resolveWildcardTypeBounds(wildcardType.getLowerBounds(), srcType, declaringClass);
+    // 解析wildcardType的上边界
     Type[] upperBounds = resolveWildcardTypeBounds(wildcardType.getUpperBounds(), srcType, declaringClass);
     return new WildcardTypeImpl(lowerBounds, upperBounds);
   }
 
+  /**
+   * 解析WildcardType的边界，解析过程与resolveType类似
+   *
+   * @param bounds 上界或下界
+   * @param srcType 解析的起始类
+   * @param declaringClass 定义要解析的字段或者方法的类
+   * @return 解析好的类
+   */
   private static Type[] resolveWildcardTypeBounds(Type[] bounds, Type srcType, Class<?> declaringClass) {
     Type[] result = new Type[bounds.length];
     for (int i = 0; i < bounds.length; i++) {
@@ -182,7 +219,7 @@ public class TypeParameterResolver {
 
     // 获取声明的父类类型
     Type superclass = clazz.getGenericSuperclass();
-    // 通过扫描父类进行解析，scanSupperTypes是递归调用
+    // 通过扫描父类进行解析，scanSupperTypes中可能会调用resolveTypeVar方法，当前方法就是一个递归方法，一直寻找到合适的父类为止
     result = scanSuperTypes(typeVar, srcType, declaringClass, clazz, superclass);
     if (result != null) {
       return result;
@@ -220,10 +257,12 @@ public class TypeParameterResolver {
           }
         }
       }
+      // 若声明该字段或方法的类是parentClass的父类，则重新调用resolveTypeVar来解析
       if (declaringClass.isAssignableFrom(parentAsClass)) {
         return resolveTypeVar(typeVar, parentAsType, declaringClass);
       }
     } else if (superclass instanceof Class && declaringClass.isAssignableFrom((Class<?>) superclass)) {
+      // 若声明该字段或方法的类是parentClass的父类，则重新调用resolveTypeVar来解析
       return resolveTypeVar(typeVar, superclass, declaringClass);
     }
     return null;

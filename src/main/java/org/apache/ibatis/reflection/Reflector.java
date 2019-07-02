@@ -100,6 +100,10 @@ public class Reflector {
     }
   }
 
+  /**
+   * 初始化defaultConstructor
+   * @param clazz Reflector对应的类型
+   */
   private void addDefaultConstructor(Class<?> clazz) {
     Constructor<?>[] consts = clazz.getDeclaredConstructors();
     for (Constructor<?> constructor : consts) {
@@ -181,6 +185,11 @@ public class Reflector {
     }
   }
 
+  /**
+   * 添加GetMethod到getMethods和getTypes字段中
+   * @param name 属性名
+   * @param method 属性名对应的getter方法
+   */
   private void addGetMethod(String name, Method method) {
     // 检测属性是否合法
     if (isValidPropertyName(name)) {
@@ -407,7 +416,7 @@ public class Reflector {
   }
 
   /**
-   * Checks whether can control member accessible.
+   * 检查是否有反射控制权限
    *
    * @return If can control member accessible, it return {@literal true}
    * @since 3.5.0

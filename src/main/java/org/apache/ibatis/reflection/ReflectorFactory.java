@@ -37,7 +37,7 @@ public interface ReflectorFactory {
   void setClassCacheEnabled(boolean classCacheEnabled);
 
   /**
-   * 创建指定Class对应的Reflector对象
+   * 创建指定Class对应的Reflector对象返回,或者从缓存中找到并返回
    *
    * @param type 需要创建Reflector的类
    * @return reflector

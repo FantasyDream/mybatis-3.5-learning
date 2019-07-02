@@ -28,10 +28,17 @@ public final class PropertyCopier {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * Bean拷贝...代码写的略简单,性能上应该不如spring的Bean拷贝
+   * @param type 源对象类型
+   * @param sourceBean 源对象
+   * @param destinationBean 目标对象
+   */
   public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
     Class<?> parent = type;
     while (parent != null) {
       final Field[] fields = parent.getDeclaredFields();
+      // 循环复制sourceBean的属性
       for(Field field : fields) {
         try {
           try {
