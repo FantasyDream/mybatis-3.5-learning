@@ -18,12 +18,27 @@ package org.apache.ibatis.reflection.wrapper;
 import org.apache.ibatis.reflection.MetaObject;
 
 /**
+ * 该接口的默认实现DefaultObjectWrapperFactory实际上式无法使用的,所以这个接口只能由我们在配置文件中自定义进行扩展
+ *
  * @author Clinton Begin
  */
 public interface ObjectWrapperFactory {
 
+  /**
+   * 是否有ObjectWrapper对应object
+   *
+   * @param object
+   * @return
+   */
   boolean hasWrapperFor(Object object);
 
+  /**
+   * 获得ObjectWrapper
+   *
+   * @param metaObject
+   * @param object
+   * @return
+   */
   ObjectWrapper getWrapperFor(MetaObject metaObject, Object object);
 
 }

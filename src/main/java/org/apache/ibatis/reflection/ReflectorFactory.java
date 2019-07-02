@@ -16,7 +16,8 @@
 package org.apache.ibatis.reflection;
 
 /**
- * 这是Reflector的工厂接口，它的实现类需要实现三个功能，打开缓存功能，查看是否会缓存，和创建Reflector
+ * 这是Reflector的工厂接口，它的实现类需要实现三个功能，打开缓存功能，查看是否会缓存，和创建Reflector。
+ * 该类会在框架启动加载配置文件时创建，是单例的。
  *
  * @author mybatis
  */

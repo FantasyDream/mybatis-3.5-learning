@@ -42,16 +42,21 @@ public class BeanWrapper extends BaseWrapper {
 
   @Override
   public Object get(PropertyTokenizer prop) {
+    // 存在索引信息,则说明表达式中的name是集合类型
     if (prop.getIndex() != null) {
+      // 通过MetaObject.getValue()方法获取object对象中的指定集合类型
       Object collection = resolveCollection(prop, object);
+      // 从集合中获取元素,调用的是BaseWrapper的方法
       return getCollectionValue(prop, collection);
     } else {
+      // 不是集合,这调用Invoker相关方法直接获得属性
       return getBeanProperty(prop, object);
     }
   }
 
   @Override
   public void set(PropertyTokenizer prop, Object value) {
+    // 实现逻辑于get基本一致
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       setCollectionValue(prop, collection, value);
@@ -59,6 +64,8 @@ public class BeanWrapper extends BaseWrapper {
       setBeanProperty(prop, object, value);
     }
   }
+
+  // 下面这三个方法就是直接调用metaClass的同名方法,不再赘述
 
   @Override
   public String findProperty(String name, boolean useCamelCaseMapping) {
@@ -157,6 +164,13 @@ public class BeanWrapper extends BaseWrapper {
     return metaValue;
   }
 
+  /**
+   * 获取prop在object中对应的属性,通过GetInvoker来获得
+   *
+   * @param prop
+   * @param object
+   * @return
+   */
   private Object getBeanProperty(PropertyTokenizer prop, Object object) {
     try {
       Invoker method = metaClass.getGetInvoker(prop.getName());

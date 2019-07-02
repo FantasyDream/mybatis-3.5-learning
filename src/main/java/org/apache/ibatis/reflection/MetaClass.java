@@ -32,11 +32,11 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 public class MetaClass {
 
   /**
-   *  用于创建或者缓存Reflector对象
+   *  用于创建或者缓存Reflector对象，这个属性应该是单例的，所有MetaClass共享一个reflectorFactory
    */
   private final ReflectorFactory reflectorFactory;
   /**
-   *  用于记录在创建时指定的一个类的源信息
+   *  用于记录在创建时指定的一个类的源信息，这个则是每个MetaClass都自带一个
    */
   private final Reflector reflector;
 
@@ -63,8 +63,8 @@ public class MetaClass {
 
   /**
    * 根据属性名创建属性类型对应的MetaClass
-   * @param name
-   * @return
+   * @param name 属性名
+   * @return 属性名类型对应的MetaClass
    */
   public MetaClass metaClassForProperty(String name) {
     Class<?> propType = reflector.getGetterType(name);
@@ -72,17 +72,24 @@ public class MetaClass {
   }
 
   /**
-   *
-   * @param name
-   * @return
+   * 根据大小写错误的属性名查找到真正的属性名
+   * @param name 大小写错误的属性名
+   * @return 真正的属性名
    */
   public String findProperty(String name) {
     StringBuilder prop = buildProperty(name, new StringBuilder());
     return prop.length() > 0 ? prop.toString() : null;
   }
 
+  /**
+   * 添加驼峰命名解析开关的方法,应该是用于数据库字段名转JavaBean属性名的查询
+   * @param name 属性名
+   * @param useCamelCaseMapping
+   * @return
+   */
   public String findProperty(String name, boolean useCamelCaseMapping) {
     if (useCamelCaseMapping) {
+      // 将下划线去掉
       name = name.replace("_", "");
     }
     return findProperty(name);
@@ -106,6 +113,11 @@ public class MetaClass {
     }
   }
 
+  /**
+   * 重载方法,通过String型的name构建出PropertyTokenizer,再调用以PropertyTokenizer的方法
+   * @param name 属性名
+   * @return getter返回值类型
+   */
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -116,18 +128,35 @@ public class MetaClass {
     return getGetterType(prop);
   }
 
+  /**
+   * 重载方法，实现逻辑比以string为参数的方法复杂，主要通过getGetterType实现
+   * @param prop 属性的PropertyTokenizer
+   * @return 属性对应的类型的MetaClass
+   */
   private MetaClass metaClassForProperty(PropertyTokenizer prop) {
     Class<?> propType = getGetterType(prop);
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 通过PropertyTokenizer获得其对应的类型
+   * @param prop
+   * @return
+   */
   private Class<?> getGetterType(PropertyTokenizer prop) {
+    // 获取属性类型
     Class<?> type = reflector.getGetterType(prop.getName());
+    // 该表达式中是否使用"[]",且是Collection子类
     if (prop.getIndex() != null && Collection.class.isAssignableFrom(type)) {
+      // 通过TypeParameterResolver工具类解析属性的类型
       Type returnType = getGenericGetterType(prop.getName());
+      // 针对泛型集合进行处理
       if (returnType instanceof ParameterizedType) {
+        // 获取实际的类型参数
         Type[] actualTypeArguments = ((ParameterizedType) returnType).getActualTypeArguments();
+        // 这里增加了一个length==1的判定条件,我觉得应该是用来指定数组类的集合来解析,而Map类的不能用来解析,也不能用表达式表示
         if (actualTypeArguments != null && actualTypeArguments.length == 1) {
+          // 获得泛型的类型
           returnType = actualTypeArguments[0];
           if (returnType instanceof Class) {
             type = (Class<?>) returnType;
@@ -140,9 +169,16 @@ public class MetaClass {
     return type;
   }
 
+  /**
+   * 获得集合的类型,主要用于判断是否为泛型集合
+   * @param propertyName 属性名
+   * @return 集合类型
+   */
   private Type getGenericGetterType(String propertyName) {
     try {
+      // 获得属性名对应的方法对象
       Invoker invoker = reflector.getGetInvoker(propertyName);
+      // 根据invoker的类型的不同,判断是解析字段类型还是方法返回值类型
       if (invoker instanceof MethodInvoker) {
         Field _method = MethodInvoker.class.getDeclaredField("method");
         _method.setAccessible(true);
@@ -159,6 +195,11 @@ public class MetaClass {
     return null;
   }
 
+  /**
+   * 与hasGetter逻辑基本相同
+   * @param name 属性名
+   * @return 是否有setter
+   */
   public boolean hasSetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -178,13 +219,16 @@ public class MetaClass {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     // 存在待处理的子表达式
     if (prop.hasNext()) {
+      // PropertyTokenizer.name指定的属性有getter方法，才能处理子表达式
       if (reflector.hasGetter(prop.getName())) {
+        // 这里仍是递归调用，判断每个子表达式是否有Getter方法，有一个没有就返回false
         MetaClass metaProp = metaClassForProperty(prop);
         return metaProp.hasGetter(prop.getChildren());
       } else {
         return false;
       }
     } else {
+      // 跳出递归
       return reflector.hasGetter(prop.getName());
     }
   }

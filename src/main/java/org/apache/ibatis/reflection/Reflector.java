@@ -317,7 +317,7 @@ public class Reflector {
           addSetField(field);
         }
       }
-      // 若getMethods不存在该属性时，则将它添加到setMethods和setTypes中
+      // 若getMethods不存在该属性时，则将它添加到setMethods和setTypes中,其中setMethods的value是mybatis自己定义的类GetFieldInvoker
       if (!getMethods.containsKey(field.getName())) {
         addGetField(field);
       }

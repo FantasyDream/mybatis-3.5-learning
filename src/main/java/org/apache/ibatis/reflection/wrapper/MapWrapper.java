@@ -25,6 +25,8 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * 该类是Map的包装类,于BeanWrapper的区别是,将关于对象的操作都变成了map的操作
+ *
  * @author Clinton Begin
  */
 public class MapWrapper extends BaseWrapper {

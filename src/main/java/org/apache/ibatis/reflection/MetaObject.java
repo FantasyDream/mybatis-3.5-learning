@@ -32,10 +32,25 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
  */
 public class MetaObject {
 
+  /**
+   * 原始的JavaBean对象
+   */
   private final Object originalObject;
+  /**
+   * ObjectWrapper对象,其中封装了originalObject对象
+   */
   private final ObjectWrapper objectWrapper;
+  /**
+   * 创建对象的工厂
+   */
   private final ObjectFactory objectFactory;
+  /**
+   * 创建objectWrapper的工厂
+   */
   private final ObjectWrapperFactory objectWrapperFactory;
+  /**
+   * 创建并缓存Reflector对象的工厂
+   */
   private final ReflectorFactory reflectorFactory;
 
   private MetaObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
@@ -45,25 +60,43 @@ public class MetaObject {
     this.reflectorFactory = reflectorFactory;
 
     if (object instanceof ObjectWrapper) {
+      // 若object已经是ObjectWrapper类型,则直接使用
       this.objectWrapper = (ObjectWrapper) object;
     } else if (objectWrapperFactory.hasWrapperFor(object)) {
+      // 若ObjectWrapperFactory能够为改原始对象创建对应的ObjectWrapper对象,则优先使用,这里一般使用用户自定义的ObjectWrapperFactory,因为默认的无法使用
       this.objectWrapper = objectWrapperFactory.getWrapperFor(this, object);
     } else if (object instanceof Map) {
+      // 若object为Map类型,则创建MapWrapper
       this.objectWrapper = new MapWrapper(this, (Map) object);
     } else if (object instanceof Collection) {
+      // 若object为Collection类型,则创建CollectionWrapper
       this.objectWrapper = new CollectionWrapper(this, (Collection) object);
     } else {
+      // 最后,若前面都不成立,则创建普通的BeanWrapper类型
       this.objectWrapper = new BeanWrapper(this, object);
     }
   }
 
+  /**
+   * MetaObject的构造方法是私有的,这里提供一个静态方法来创建MetaObject类型
+   *
+   * @param object
+   * @param objectFactory
+   * @param objectWrapperFactory
+   * @param reflectorFactory
+   * @return
+   */
   public static MetaObject forObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
     if (object == null) {
+      // 若Object为Null,则统一返回SystemMetaObject.Null_META_OBJECT对象,
       return SystemMetaObject.NULL_META_OBJECT;
     } else {
+      // 正常新建
       return new MetaObject(object, objectFactory, objectWrapperFactory, reflectorFactory);
     }
   }
+
+  // 从getObjectFactory到hasGetter都是直接返回属性或者直接调用方法,无需赘述
 
   public ObjectFactory getObjectFactory() {
     return objectFactory;
@@ -112,13 +145,17 @@ public class MetaObject {
   public Object getValue(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      // 若有子表达式,创建相应的MetaObject对象
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
+        // 排除为NULL的情况
         return null;
       } else {
+        // 递归处理子表达式
         return metaValue.getValue(prop.getChildren());
       }
     } else {
+      // 通过ObjectWrapper获取指定的属性值
       return objectWrapper.get(prop);
     }
   }
@@ -141,6 +178,12 @@ public class MetaObject {
     }
   }
 
+  /**
+   * 这个是通过属性名来创建MetaObject对象,不是静态方法,用于递归调用
+   *
+   * @param name 属性名
+   * @return MetaObject
+   */
   public MetaObject metaObjectForProperty(String name) {
     Object value = getValue(name);
     return MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);

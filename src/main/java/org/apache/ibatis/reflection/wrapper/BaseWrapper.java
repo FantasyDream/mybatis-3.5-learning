@@ -34,6 +34,12 @@ public abstract class BaseWrapper implements ObjectWrapper {
     this.metaObject = metaObject;
   }
 
+  /**
+   * 解析表达式并获得指定的属性,这里是调用metaObject.getValue方法来实现的
+   * @param prop
+   * @param object
+   * @return
+   */
   protected Object resolveCollection(PropertyTokenizer prop, Object object) {
     if ("".equals(prop.getName())) {
       return object;
@@ -42,11 +48,21 @@ public abstract class BaseWrapper implements ObjectWrapper {
     }
   }
 
+  /**
+   * 从Collection中获得值
+   *
+   * @param prop
+   * @param collection
+   * @return
+   */
   protected Object getCollectionValue(PropertyTokenizer prop, Object collection) {
     if (collection instanceof Map) {
+      // 如果是Map类型，则index为key
       return ((Map) collection).get(prop.getIndex());
     } else {
+      // 如果是其他集合类型，则index为下标
       int i = Integer.parseInt(prop.getIndex());
+      // 对不同集合类型获取元素的处理
       if (collection instanceof List) {
         return ((List) collection).get(i);
       } else if (collection instanceof Object[]) {
@@ -73,6 +89,13 @@ public abstract class BaseWrapper implements ObjectWrapper {
     }
   }
 
+  /**
+   * 与getCollectionValue方法差不多，只是将获得值变为赋值
+   *
+   * @param prop
+   * @param collection
+   * @param value
+   */
   protected void setCollectionValue(PropertyTokenizer prop, Object collection, Object value) {
     if (collection instanceof Map) {
       ((Map) collection).put(prop.getIndex(), value);

@@ -23,6 +23,8 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * 该类除了Collection相关的方法,其他都抛出异常,没什么好讲的
+ *
  * @author Clinton Begin
  */
 public class CollectionWrapper implements ObjectWrapper {

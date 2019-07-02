@@ -135,8 +135,9 @@ public class XMLConfigBuilder extends BaseBuilder {
       return new Properties();
     }
     Properties props = context.getChildrenAsProperties();
-    // 检查Configuration类中的Setting是否合法。
+    // 创建Configuration对应的metaClass对象，这个对象有一系列通过反射操作configuration属性的方法
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
+    // 检查Configuration类中的Setting是否合法。
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         throw new BuilderException("The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");

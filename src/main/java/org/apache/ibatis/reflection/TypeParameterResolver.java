@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * 该类是一个工具类,就是用来解析某个类的方法,方法返回值,字段的类型
  * @author Iwao AVE!
  */
 public class TypeParameterResolver {
@@ -129,6 +130,14 @@ public class TypeParameterResolver {
     }
   }
 
+  /**
+   * 解析ParameterizedType类型，ParameterizedType类型表示的是参数化类型，类似List<String>的类型。
+   *
+   * @param parameterizedType
+   * @param srcType
+   * @param declaringClass
+   * @return
+   */
   private static ParameterizedType resolveParameterizedType(ParameterizedType parameterizedType, Type srcType, Class<?> declaringClass) {
     // 获得原始类型对应的对象，ParameterizedType.getRawType()返回的是参数类型的原类型，如Map<K,V>返回的是Map
     Class<?> rawType = (Class<?>) parameterizedType.getRawType();
@@ -192,6 +201,14 @@ public class TypeParameterResolver {
     return result;
   }
 
+  /**
+   * 解析TypeVariable类型，TypeVariable类型表示的是类型变量，如List<T>中的T就是类型变量
+   *
+   * @param typeVar
+   * @param srcType
+   * @param declaringClass
+   * @return
+   */
   private static Type resolveTypeVar(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass) {
     Type result = null;
     Class<?> clazz = null;
@@ -239,6 +256,16 @@ public class TypeParameterResolver {
     return Object.class;
   }
 
+  /**
+   * 将要解析的字段在其父类中解析
+   *
+   * @param typeVar
+   * @param srcType
+   * @param declaringClass
+   * @param clazz
+   * @param superclass
+   * @return
+   */
   private static Type scanSuperTypes(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass, Class<?> clazz, Type superclass) {
     if (superclass instanceof ParameterizedType) {
         // 如果superclass是参数化类型，则强转，并取出它的原始类型和参数类型
@@ -268,6 +295,14 @@ public class TypeParameterResolver {
     return null;
   }
 
+  /**
+   * 将泛型转为实际类型，如List<T>转为List<String>
+   *
+   * @param srcType
+   * @param srcClass
+   * @param parentType
+   * @return
+   */
   private static ParameterizedType translateParentTypeVars(ParameterizedType srcType, Class<?> srcClass, ParameterizedType parentType) {
     // 获取parentType的参数列表，这个参数列表一般是参数变量的，这个方法要做的就是要尽量把参数变量转为Class
     Type[] parentTypeArgs = parentType.getActualTypeArguments();
