@@ -20,7 +20,7 @@ public class MybatisTest {
     @Test
     public void test() {
         SqlSessionFactory sessionFactory = null;
-        String resource = "configuration.xml";
+        String resource = "resources/configuration.xml";
         try {
             sessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream(resource));
         } catch (IOException e) {

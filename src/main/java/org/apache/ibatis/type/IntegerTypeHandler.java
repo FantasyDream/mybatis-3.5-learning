@@ -21,6 +21,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * 该类的方法都是直接调用PreparedStatement，ResultSet，CallableStatement的对应的int相关的方法实现的
+ *
  * @author Clinton Begin
  */
 public class IntegerTypeHandler extends BaseTypeHandler<Integer> {
@@ -28,6 +30,7 @@ public class IntegerTypeHandler extends BaseTypeHandler<Integer> {
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Integer parameter, JdbcType jdbcType)
       throws SQLException {
+    // 调用PreparedStatement.setInt()实现参数绑定
     ps.setInt(i, parameter);
   }
 

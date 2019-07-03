@@ -1,6 +1,7 @@
 package org.apache.ibatis.demo.reflector;
 
 import org.apache.ibatis.reflection.TypeParameterResolver;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -16,7 +17,8 @@ public class ReflectorParameterResolverTest {
 
     Child<String> child = new Child<>();
 
-    public static void main(String[] args) {
+    @Test
+    public void test(){
         try {
             Field field = Child.class.getField("map");
             field.setAccessible(true);

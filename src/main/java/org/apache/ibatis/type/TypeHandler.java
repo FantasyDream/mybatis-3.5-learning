@@ -25,8 +25,25 @@ import java.sql.SQLException;
  */
 public interface TypeHandler<T> {
 
+  /**
+   * 通过预处理语句绑定参数，我们传入参数，和对应的jdbcType，会由方法自动完成Java类型到jdbcType的转换
+   *
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
+  /**
+   * 这三个方法，分别使用不同的方式获得结果集，结果集会从jdbcType转成Java类型
+   *
+   * @param rs
+   * @param columnName
+   * @return
+   * @throws SQLException
+   */
   T getResult(ResultSet rs, String columnName) throws SQLException;
 
   T getResult(ResultSet rs, int columnIndex) throws SQLException;

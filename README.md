@@ -1,22 +1,4 @@
-MyBatis SQL Mapper Framework for Java
-=====================================
-
-[![Build Status](https://travis-ci.org/mybatis/mybatis-3.svg?branch=master)](https://travis-ci.org/mybatis/mybatis-3)
-[![Coverage Status](https://coveralls.io/repos/mybatis/mybatis-3/badge.svg?branch=master&service=github)](https://coveralls.io/github/mybatis/mybatis-3?branch=master)
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/org.mybatis/mybatis/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.mybatis/mybatis)
-[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-[![Stack Overflow](http://img.shields.io/:stack%20overflow-mybatis-brightgreen.svg)](http://stackoverflow.com/questions/tagged/mybatis)
-[![Project Stats](https://www.openhub.net/p/mybatis/widgets/project_thin_badge.gif)](https://www.openhub.net/p/mybatis)
-
-![mybatis](http://mybatis.github.io/images/mybatis-logo.png)
-
-The MyBatis SQL mapper framework makes it easier to use a relational database with object-oriented applications.
-MyBatis couples objects with stored procedures or SQL statements using a XML descriptor or annotations.
-Simplicity is the biggest advantage of the MyBatis data mapper over object relational mapping tools.
-
-Essentials
-----------
-
-* [See the docs](http://mybatis.github.io/mybatis-3)
-* [Download Latest](https://github.com/mybatis/mybatis-3/releases)
-* [Download Snapshot](https://oss.sonatype.org/content/repositories/snapshots/org/mybatis/mybatis/)
+#MyBatis源码中文注释
+这里的注释是参考《MyBatis技术内幕》这本书写的，原书的解读是基于3.4版本的，这里的源码时3.5版本的。
+3.5版本与3.4版本最大的区别是JDK最低支持版本升级到了8，源码中也用jdk8的新特性重写了部分功能。
+这份注释的源码版本是3.5.0，其中最新的3.5.1更进一步，继续用jdk8新特性重写代码，等有时间会将源码版本升级到3.5.1

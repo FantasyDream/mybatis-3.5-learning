@@ -5,7 +5,7 @@
 <configuration>
 
     <!-- 指定properties配置文件， 我这里面配置的是数据库相关 -->
-    <properties resource="dbConfig.properties"/>
+    <properties resource="resources/dbConfig.properties"/>
 
     <!-- 指定Mybatis使用log4j -->
     <settings>
@@ -40,7 +40,7 @@
 
     <!-- 映射文件，mybatis精髓， 后面才会细讲 -->
     <mappers>
-        <mapper resource="mapper/AdminMapper.xml"/>
+        <mapper resource="resources/mapper/AdminMapper.xml"/>
     </mappers>
 
 </configuration>
