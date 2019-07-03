@@ -56,7 +56,7 @@ public class BeanWrapper extends BaseWrapper {
 
   @Override
   public void set(PropertyTokenizer prop, Object value) {
-    // 实现逻辑于get基本一致
+    // 实现逻辑与get基本一致
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       setCollectionValue(prop, collection, value);
@@ -153,10 +153,14 @@ public class BeanWrapper extends BaseWrapper {
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
+    // 获取属性相应的setter方法的参数类型
     Class<?> type = getSetterType(prop.getName());
     try {
+      // 通过objectFactory创建type的对象
       Object newObject = objectFactory.create(type);
+      // 创建该属性对应的MetaObject
       metaValue = MetaObject.forObject(newObject, metaObject.getObjectFactory(), metaObject.getObjectWrapperFactory(), metaObject.getReflectorFactory());
+      // 将创建的对象设置到对应的属性或集合中
       set(prop, newObject);
     } catch (Exception e) {
       throw new ReflectionException("Cannot set value of property '" + name + "' because '" + name + "' is null and cannot be instantiated on instance of " + type.getName() + ". Cause:" + e.toString(), e);
@@ -173,8 +177,10 @@ public class BeanWrapper extends BaseWrapper {
    */
   private Object getBeanProperty(PropertyTokenizer prop, Object object) {
     try {
+      // 获得属性对应的getter方法
       Invoker method = metaClass.getGetInvoker(prop.getName());
       try {
+        // 通过getter方法获得object上的属性对应值
         return method.invoke(object, NO_ARGUMENTS);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
@@ -188,9 +194,11 @@ public class BeanWrapper extends BaseWrapper {
 
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
+      // 获得属性对应的setter方法
       Invoker method = metaClass.getSetInvoker(prop.getName());
       Object[] params = {value};
       try {
+        // 通过setter方法为object上的属性赋值
         method.invoke(object, params);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);

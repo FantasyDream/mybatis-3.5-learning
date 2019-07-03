@@ -161,6 +161,7 @@ public class MetaObject {
   }
 
   public void setValue(String name, Object value) {
+    // 为属性表达式创建对应的解析类
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
@@ -169,11 +170,14 @@ public class MetaObject {
           // don't instantiate child path if value is null
           return;
         } else {
+          // 初始化表达式路径上为空的属性
           metaValue = objectWrapper.instantiatePropertyValue(name, prop, objectFactory);
         }
       }
+      // 递归调用，知道处理到最后一个子表达式为止
       metaValue.setValue(prop.getChildren(), value);
     } else {
+      // 赋值
       objectWrapper.set(prop, value);
     }
   }
@@ -185,7 +189,9 @@ public class MetaObject {
    * @return MetaObject
    */
   public MetaObject metaObjectForProperty(String name) {
+    // 获取指定的属性
     Object value = getValue(name);
+    // 创建该属性对应的MetaObject对象
     return MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);
   }
 
