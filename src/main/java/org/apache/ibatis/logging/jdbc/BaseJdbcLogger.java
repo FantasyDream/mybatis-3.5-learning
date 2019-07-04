@@ -37,6 +37,7 @@ import org.apache.ibatis.reflection.ArrayUtil;
  */
 public abstract class BaseJdbcLogger {
 
+  // 记录了PreparedStatement
   protected static final Set<String> SET_METHODS = new HashSet<>();
   protected static final Set<String> EXECUTE_METHODS = new HashSet<>();
 

@@ -127,11 +127,11 @@ public class TypeAliasRegistry {
 
   public void registerAliases(String packageName, Class<?> superType){
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 查找指定包下的superType类型类
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
     Set<Class<? extends Class<?>>> typeSet = resolverUtil.getClasses();
     for(Class<?> type : typeSet){
-      // Ignore inner classes and interfaces (including package-info.java)
-      // Skip also inner classes. See issue #6
+      // 过滤掉内部类,接口以及抽象类
       if (!type.isAnonymousClass() && !type.isInterface() && !type.isMemberClass()) {
         registerAlias(type);
       }
@@ -139,11 +139,14 @@ public class TypeAliasRegistry {
   }
 
   public void registerAlias(Class<?> type) {
+    // 类的名称
     String alias = type.getSimpleName();
+    // 获取注解
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     }
+    // 调用重载方法注册
     registerAlias(alias, type);
   }
 
@@ -151,11 +154,13 @@ public class TypeAliasRegistry {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
-    // issue #748
+    // 将别名转为小写
     String key = alias.toLowerCase(Locale.ENGLISH);
+    // 检测别名是否已经存在
     if (TYPE_ALIASES.containsKey(key) && TYPE_ALIASES.get(key) != null && !TYPE_ALIASES.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + TYPE_ALIASES.get(key).getName() + "'.");
     }
+    // 将别名注册
     TYPE_ALIASES.put(key, value);
   }
 

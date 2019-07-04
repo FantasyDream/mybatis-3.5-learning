@@ -204,6 +204,13 @@ public final class TypeHandlerRegistry {
     return javaTypeReference != null && getTypeHandler(javaTypeReference, jdbcType) != null;
   }
 
+  /**
+   * 根据TypeHandler的类型得到对应的TypeHandler对象
+   * 直接从ALL_TYPE_HANDLERS_MAP中查找
+   *
+   * @param handlerType
+   * @return
+   */
   public TypeHandler<?> getMappingTypeHandler(Class<? extends TypeHandler<?>> handlerType) {
     return ALL_TYPE_HANDLERS_MAP.get(handlerType);
   }
@@ -216,6 +223,13 @@ public final class TypeHandlerRegistry {
     return getTypeHandler(javaTypeReference, null);
   }
 
+  /**
+   * 根据jdbcType查找出对应的TypeHandler
+   * 直接从JDBC_TYPE_HANDLER_MAP中获得
+   *
+   * @param jdbcType
+   * @return
+   */
   public TypeHandler<?> getTypeHandler(JdbcType jdbcType) {
     return JDBC_TYPE_HANDLER_MAP.get(jdbcType);
   }
@@ -230,18 +244,21 @@ public final class TypeHandlerRegistry {
 
   @SuppressWarnings("unchecked")
   private <T> TypeHandler<T> getTypeHandler(Type type, JdbcType jdbcType) {
+    // 如果是ParamMap。则返回nul， ParamMap是MapperMethod的一个内部类，继承了HashMap，所以它没有对应的TypeHandler
     if (ParamMap.class.equals(type)) {
       return null;
     }
+    // 查找Java类型对应的TypeHandler集合
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = getJdbcHandlerMap(type);
     TypeHandler<?> handler = null;
     if (jdbcHandlerMap != null) {
+      // 根据JdbcHandlerMap类型查找TypeHandler对象
       handler = jdbcHandlerMap.get(jdbcType);
       if (handler == null) {
         handler = jdbcHandlerMap.get(null);
       }
       if (handler == null) {
-        // #591
+        // 如果jdbcHandlerMap只注册了一个TypeHandler，则使用此TypeHandler对象
         handler = pickSoleHandler(jdbcHandlerMap);
       }
     }
@@ -250,22 +267,29 @@ public final class TypeHandlerRegistry {
   }
 
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMap(Type type) {
+    // 查找Java类型对应的TypeHandler集合
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = TYPE_HANDLER_MAP.get(type);
+    // 检测是否为空集合标识
     if (NULL_TYPE_HANDLER_MAP.equals(jdbcHandlerMap)) {
       return null;
     }
+    // 初始化指定Java类型的TypeHandler集合
     if (jdbcHandlerMap == null && type instanceof Class) {
       Class<?> clazz = (Class<?>) type;
       if (clazz.isEnum()) {
+        // 枚举类型的处理
         jdbcHandlerMap = getJdbcHandlerMapForEnumInterfaces(clazz, clazz);
         if (jdbcHandlerMap == null) {
+          // 如果没有，则注册
           register(clazz, getInstance(clazz, defaultEnumTypeHandler));
           return TYPE_HANDLER_MAP.get(clazz);
         }
       } else {
+        // 查找父类对应的TypeHandler集合，并作为初始集合
         jdbcHandlerMap = getJdbcHandlerMapForSuperclass(clazz);
       }
     }
+    // 更新TYPE_HANDLER_MAP
     TYPE_HANDLER_MAP.put(type, jdbcHandlerMap == null ? NULL_TYPE_HANDLER_MAP : jdbcHandlerMap);
     return jdbcHandlerMap;
   }
@@ -290,14 +314,17 @@ public final class TypeHandlerRegistry {
   }
 
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMapForSuperclass(Class<?> clazz) {
+    // 获取Clazz的父类
     Class<?> superclass =  clazz.getSuperclass();
     if (superclass == null || Object.class.equals(superclass)) {
       return null;
     }
+    // 从Type_HANDLER_MAP中找到superclass对应的TypeHandler集合
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = TYPE_HANDLER_MAP.get(superclass);
     if (jdbcHandlerMap != null) {
       return jdbcHandlerMap;
     } else {
+      // 找不到则递归查找
       return getJdbcHandlerMapForSuperclass(superclass);
     }
   }
@@ -455,6 +482,7 @@ public final class TypeHandlerRegistry {
 
   @SuppressWarnings("unchecked")
   public <T> TypeHandler<T> getInstance(Class<?> javaTypeClass, Class<?> typeHandlerClass) {
+    // 使用反射创建对象，首先尝试有一个参数的构造方法创建，不行再用无参构造函数创建
     if (javaTypeClass != null) {
       try {
         Constructor<?> c = typeHandlerClass.getConstructor(Class.class);
@@ -477,11 +505,13 @@ public final class TypeHandlerRegistry {
 
   public void register(String packageName) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 查找指定包下的TypeHandler接口实现类
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
     Set<Class<? extends Class<?>>> handlerSet = resolverUtil.getClasses();
     for (Class<?> type : handlerSet) {
-      //Ignore inner classes and interfaces (including package-info.java) and abstract classes
+      // 过滤掉内部类、接口以及抽象类
       if (!type.isAnonymousClass() && !type.isInterface() && !Modifier.isAbstract(type.getModifiers())) {
+        // 注册TypeHandler
         register(type);
       }
     }
