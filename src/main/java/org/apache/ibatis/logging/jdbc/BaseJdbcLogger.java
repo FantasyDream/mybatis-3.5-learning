@@ -37,16 +37,33 @@ import org.apache.ibatis.reflection.ArrayUtil;
  */
 public abstract class BaseJdbcLogger {
 
-  // 记录了PreparedStatement
+  /**
+   * 记录了PreparedStatement接口中定义的setXXX()的方法名
+   */
   protected static final Set<String> SET_METHODS = new HashSet<>();
+  /**
+   * 记录了PreparedStatement接口和Statement接口中与执行sql相关的方法
+   */
   protected static final Set<String> EXECUTE_METHODS = new HashSet<>();
-
+  /**
+   * 记录了PreparedStatement.setXXX()方法设置的键值对
+   */
   private final Map<Object, Object> columnMap = new HashMap<>();
-
+  /**
+   * 记录了PreparedStatement.setXXX()方法的key值
+   */
   private final List<Object> columnNames = new ArrayList<>();
+  /**
+   * 记录了preparedStatement.setXXX()方法设置的返回值
+   */
   private final List<Object> columnValues = new ArrayList<>();
-
+  /**
+   * 记录了输出日志的Log对象
+   */
   protected Log statementLog;
+  /**
+   * 记录了sql的层数,用于格式化输出sql
+   */
   protected int queryStack;
 
   /*
@@ -93,6 +110,12 @@ public abstract class BaseJdbcLogger {
     EXECUTE_METHODS.add("addBatch");
   }
 
+  /**
+   * 记录SPreparedStatement的setXXX()方法的参数
+   *
+   * @param key 列名
+   * @param value 列值
+   */
   protected void setColumn(Object key, Object value) {
     columnMap.put(key, value);
     columnNames.add(key);

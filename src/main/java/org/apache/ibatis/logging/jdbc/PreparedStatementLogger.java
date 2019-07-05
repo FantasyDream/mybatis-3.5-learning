@@ -44,14 +44,19 @@ public final class PreparedStatementLogger extends BaseJdbcLogger implements Inv
   @Override
   public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
     try {
+      // Object的方法不做处理
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, params);
       }
+      // 如果执行的是EXECUTE_METHODS中记录的方法
       if (EXECUTE_METHODS.contains(method.getName())) {
         if (isDebugEnabled()) {
+          // 输出参数值和类型
           debug("Parameters: " + getParameterValueString(), true);
         }
+        // 清空BaseJdbcLogger中定义的三个column*集合
         clearColumnInfo();
+        // 如果调用的是executeQuery方法,则为ResultSet创建代理对象,否则直接返回结果
         if ("executeQuery".equals(method.getName())) {
           ResultSet rs = (ResultSet) method.invoke(statement, params);
           return rs == null ? null : ResultSetLogger.newInstance(rs, statementLog, queryStack);
@@ -59,6 +64,7 @@ public final class PreparedStatementLogger extends BaseJdbcLogger implements Inv
           return method.invoke(statement, params);
         }
       } else if (SET_METHODS.contains(method.getName())) {
+        // 如果调用SET_METHODS集合中的方法,则通过setColumn()方法记录到BaseJdbcLogger定义的三个column集合
         if ("setNull".equals(method.getName())) {
           setColumn(params[0], null);
         } else {
@@ -66,9 +72,11 @@ public final class PreparedStatementLogger extends BaseJdbcLogger implements Inv
         }
         return method.invoke(statement, params);
       } else if ("getResultSet".equals(method.getName())) {
+        // 返回ResultSet代理对象
         ResultSet rs = (ResultSet) method.invoke(statement, params);
         return rs == null ? null : ResultSetLogger.newInstance(rs, statementLog, queryStack);
       } else if ("getUpdateCount".equals(method.getName())) {
+        // 调用原方法后输出日志
         int updateCount = (Integer) method.invoke(statement, params);
         if (updateCount != -1) {
           debug("   Updates: " + updateCount, false);

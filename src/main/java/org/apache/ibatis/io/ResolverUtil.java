@@ -57,36 +57,36 @@ import org.apache.ibatis.logging.LogFactory;
  * @author Tim Fennell
  */
 public class ResolverUtil<T> {
-  /*
-   * An instance of Log to use for logging in this class.
+  /**
+   * 用来打印日志的类
    */
   private static final Log log = LogFactory.getLog(ResolverUtil.class);
 
   /**
-   * A simple interface that specifies how to test classes to determine if they
-   * are to be included in the results produced by the ResolverUtil.
+   * 该接口用来指定条件来蚌湖ResolverUtil查找指定包下的类
    */
   public interface Test {
     /**
-     * Will be called repeatedly with candidate classes. Must return True if a class
-     * is to be included in the results, false otherwise.
+     * 检测类是否符合条件,符合返回true,否则返回false
+     *
+     * @param type 待检测的类
+     * @return
      */
     boolean matches(Class<?> type);
   }
 
   /**
-   * A Test that checks to see if each class is assignable to the provided class. Note
-   * that this test will match the parent type itself if it is presented for matching.
+   * 用于检测指定类中是否继承了parent
    */
   public static class IsA implements Test {
     private Class<?> parent;
 
-    /** Constructs an IsA test using the supplied Class as the parent class/interface. */
+    /** 初始化parent字段 */
     public IsA(Class<?> parentType) {
       this.parent = parentType;
     }
 
-    /** Returns true if type is assignable to the parent type supplied in the constructor. */
+    /** 判断type是否为parent的子类 */
     @Override
     public boolean matches(Class<?> type) {
       return type != null && parent.isAssignableFrom(type);
@@ -99,18 +99,17 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * A Test that checks to see if each class is annotated with a specific annotation. If it
-   * is, then the test returns true, otherwise false.
+   * 检测指定类是否添加了annotation注解
    */
   public static class AnnotatedWith implements Test {
     private Class<? extends Annotation> annotation;
 
-    /** Constructs an AnnotatedWith test for the specified annotation type. */
+    /** 初始化annotation字段 */
     public AnnotatedWith(Class<? extends Annotation> annotation) {
       this.annotation = annotation;
     }
 
-    /** Returns true if the type is annotated with the class provided to the constructor. */
+    /** 判断type是否被annotation注解 */
     @Override
     public boolean matches(Class<?> type) {
       return type != null && type.isAnnotationPresent(annotation);
@@ -122,12 +121,11 @@ public class ResolverUtil<T> {
     }
   }
 
-  /** The set of matches being accumulated. */
+  /** 符合条件的类的集合 */
   private Set<Class<? extends T>> matches = new HashSet<>();
 
   /**
-   * The ClassLoader to use when looking for classes. If null then the ClassLoader returned
-   * by Thread.currentThread().getContextClassLoader() will be used.
+   * 用于查找类的classLoader，当其为null时使用Thread.currentThread().getContextClassLoader()
    */
   private ClassLoader classloader;
 
@@ -162,13 +160,10 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * Attempts to discover classes that are assignable to the type provided. In the case
-   * that an interface is provided this method will collect implementations. In the case
-   * of a non-interface class, subclasses will be collected.  Accumulated classes can be
-   * accessed by calling {@link #getClasses()}.
+   * 从指定包下查找实现了parent的类
    *
-   * @param parent the class of interface to find subclasses or implementations of
-   * @param packageNames one or more package names to scan (including subpackages) for classes
+   * @param parent       要实现的父类
+   * @param packageNames 可变参数，一个或多个要查找的包名
    */
   public ResolverUtil<T> findImplementations(Class<?> parent, String... packageNames) {
     if (packageNames == null) {
@@ -184,11 +179,10 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * Attempts to discover classes that are annotated with the annotation. Accumulated
-   * classes can be accessed by calling {@link #getClasses()}.
+   * 从指定包中查找注解了annotation的类
    *
-   * @param annotation the annotation that should be present on matching classes
-   * @param packageNames one or more package names to scan (including subpackages) for classes
+   * @param annotation 要标明的注解
+   * @param packageNames 可变参数，一个或多个要查找的包名
    */
   public ResolverUtil<T> findAnnotated(Class<? extends Annotation> annotation, String... packageNames) {
     if (packageNames == null) {
@@ -217,9 +211,11 @@ public class ResolverUtil<T> {
     String path = getPackagePath(packageName);
 
     try {
+      // 通过VFS.list()查找packageName包下的所有资源
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
         if (child.endsWith(".class")) {
+          // 如果该资源是类，则检查该类是否符合test条件，符合则放入matches中
           addIfMatching(test, child);
         }
       }
@@ -250,14 +246,18 @@ public class ResolverUtil<T> {
   @SuppressWarnings("unchecked")
   protected void addIfMatching(Test test, String fqn) {
     try {
+      // 转换包名
       String externalName = fqn.substring(0, fqn.indexOf('.')).replace('/', '.');
+      // 获得当前类中定义的classLoader
       ClassLoader loader = getClassLoader();
       if (log.isDebugEnabled()) {
         log.debug("Checking to see if class " + externalName + " matches criteria [" + test + "]");
       }
 
+      // 通过刚才获取的classLoader加载包名定义的类
       Class<?> type = loader.loadClass(externalName);
       if (test.matches(type)) {
+        // 如果符合test的条件，则添加进matches
         matches.add((Class<T>) type);
       }
     } catch (Throwable t) {

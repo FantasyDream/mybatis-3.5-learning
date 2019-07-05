@@ -26,6 +26,7 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
  * Statement proxy to add logging
+ * 该类与PreparedStatement的实现基本相同,少了setMethods的处理.
  *
  * @author Clinton Begin
  * @author Eduardo Macarron

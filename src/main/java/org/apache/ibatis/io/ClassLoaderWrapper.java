@@ -25,11 +25,18 @@ import java.net.URL;
  */
 public class ClassLoaderWrapper {
 
+  /**
+   * 应用指定的默认加载器
+   */
   ClassLoader defaultClassLoader;
+  /**
+   * System ClassLoader
+   */
   ClassLoader systemClassLoader;
 
   ClassLoaderWrapper() {
     try {
+      // 初始化systemClassLoader
       systemClassLoader = ClassLoader.getSystemClassLoader();
     } catch (SecurityException ignored) {
       // AccessControlException on Google App Engine
@@ -139,21 +146,20 @@ public class ClassLoaderWrapper {
 
     URL url;
 
+    // 遍历ClassLoader数组
     for (ClassLoader cl : classLoader) {
 
       if (null != cl) {
 
-        // look for the resource as passed in...
+        // 调用ClassLoader.getResource()方法查找指定的资源
         url = cl.getResource(resource);
 
-        // ...but some class loaders want this leading "/", so we'll add it
-        // and try again if we didn't find the resource
+        // 当没找到时,尝试以"/"开头,再次查找
         if (null == url) {
           url = cl.getResource("/" + resource);
         }
 
-        // "It's always in the last place I look for it!"
-        // ... because only an idiot would keep looking for it after finding it, so stop looking already.
+        // 查找到指定的资源则返回
         if (null != url) {
           return url;
         }
@@ -162,7 +168,7 @@ public class ClassLoaderWrapper {
 
     }
 
-    // didn't find it anywhere.
+    // 未找到则返回null
     return null;
 
   }
@@ -177,12 +183,14 @@ public class ClassLoaderWrapper {
    */
   Class<?> classForName(String name, ClassLoader[] classLoader) throws ClassNotFoundException {
 
+    // 按照getClassLoaders里指定的顺序, 以此尝试加载name指定的类
     for (ClassLoader cl : classLoader) {
 
       if (null != cl) {
 
         try {
 
+          // 用cl加载name指定的类,并返回name指定的类的类型
           Class<?> c = Class.forName(name, true, cl);
 
           if (null != c) {
@@ -201,13 +209,19 @@ public class ClassLoaderWrapper {
 
   }
 
+  /**
+   * 给出一个指明了类加载器使用顺序的数组
+   *
+   * @param classLoader 指定的第一个使用的类加载器
+   * @return 类加载器数组，返回
+   */
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
-        classLoader,
-        defaultClassLoader,
-        Thread.currentThread().getContextClassLoader(),
-        getClass().getClassLoader(),
-        systemClassLoader};
+        classLoader,// 参数指定的类加载器
+        defaultClassLoader,// 系统指定的默认类加载器
+        Thread.currentThread().getContextClassLoader(), // 当前线程绑定的类加载器
+        getClass().getClassLoader(),// 加载当前类所使用的类加载器
+        systemClassLoader}; // System ClassLoader
   }
 
 }

@@ -26,17 +26,19 @@ import java.nio.charset.Charset;
 import java.util.Properties;
 
 /**
- * A class to simplify access to resources through the classloader.
+ * 通过ClassLoaderWrapper简化对资源的操作
  *
  * @author Clinton Begin
  */
 public class Resources {
 
+  /**
+   * ClassLoader的装饰类,Resources的所有操作都是通过这个类的方法实现的
+   */
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**
-   * Charset to use when calling getResourceAsReader.
-   * null means use the system default.
+   * io访问时的编码格式,为null时代表使用系统默认
    */
   private static Charset charset;
 
