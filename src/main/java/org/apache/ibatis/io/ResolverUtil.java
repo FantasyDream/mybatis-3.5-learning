@@ -63,7 +63,7 @@ public class ResolverUtil<T> {
   private static final Log log = LogFactory.getLog(ResolverUtil.class);
 
   /**
-   * 该接口用来指定条件来蚌湖ResolverUtil查找指定包下的类
+   * 该接口用来指定条件来帮助ResolverUtil查找指定包下的类
    */
   public interface Test {
     /**

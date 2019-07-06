@@ -56,20 +56,21 @@ public class DefaultVFS extends VFS {
     try {
       List<String> resources = new ArrayList<>();
 
-      // First, try to find the URL of a JAR file containing the requested resource. If a JAR
-      // file is found, then we'll list child resources by reading the JAR.
+      // 如果url指向的资源在一个jar包中,则获取该jar包对应的url.否则返回null
       URL jarUrl = findJarForResource(url);
       if (jarUrl != null) {
         is = jarUrl.openStream();
         if (log.isDebugEnabled()) {
           log.debug("Listing " + url);
         }
+        // 遍历jar中的资源,并返回以path开头的资源列表
         resources = listResources(new JarInputStream(is), path);
       }
       else {
         List<String> children = new ArrayList<>();
         try {
           if (isJar(url)) {
+            // 有些JBoss VFS的版本可能提供一个Jar流,即使url引用的资源不是一个jar包
             // Some versions of JBoss VFS might give a JAR stream even if the resource
             // referenced by the URL isn't actually a JAR
             is = url.openStream();
@@ -81,6 +82,7 @@ public class DefaultVFS extends VFS {
                 if (log.isDebugEnabled()) {
                   log.debug("Jar entry: " + entry.getName());
                 }
+                // 将资源名称记录到children集合中
                 children.add(entry.getName());
               }
             }

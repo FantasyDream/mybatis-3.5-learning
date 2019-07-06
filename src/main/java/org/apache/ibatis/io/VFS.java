@@ -35,29 +35,37 @@ import org.apache.ibatis.logging.LogFactory;
 public abstract class VFS {
   private static final Log log = LogFactory.getLog(VFS.class);
 
-  /** The built-in implementations. */
+  /**
+   * 记录了mybatis的两个VFS实现类
+   */
   public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
 
-  /** The list to which implementations are added by {@link #addImplClass(Class)}. */
+  /**
+   * 记录了用户自定义的VFS类。VFS.addImplClass()方法会将指定的VFS的Class对象添加到USER_IMPLEMENTATION中
+   */
   public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<>();
 
   /** Singleton instance holder. */
   private static class VFSHolder {
+    /**
+     * 单例模式,记录了全局唯一的VFS对象
+     */
     static final VFS INSTANCE = createVFS();
 
     @SuppressWarnings("unchecked")
     static VFS createVFS() {
-      // Try the user implementations first, then the built-ins
+      // 先尝试加载用户自定义的VFS实现,若没有,则提供Mybatis提供的实现
       List<Class<? extends VFS>> impls = new ArrayList<>();
       impls.addAll(USER_IMPLEMENTATIONS);
       impls.addAll(Arrays.asList((Class<? extends VFS>[]) IMPLEMENTATIONS));
 
-      // Try each implementation class until a valid one is found
+      // 遍历impls集合,依次实例化VFS对象并检测VFS对象是否有效,得到有效的VFS时结束循环
       VFS vfs = null;
       for (int i = 0; vfs == null || !vfs.isValid(); i++) {
         Class<? extends VFS> impl = impls.get(i);
         try {
           vfs = impl.newInstance();
+          // vfs.isValid()是一个抽象方法,每个VFS的实现类都会重写这个方法.
           if (vfs == null || !vfs.isValid()) {
             if (log.isDebugEnabled()) {
               log.debug("VFS implementation " + impl.getName() +
@@ -174,12 +182,11 @@ public abstract class VFS {
     return Collections.list(Thread.currentThread().getContextClassLoader().getResources(path));
   }
 
-  /** Return true if the {@link VFS} implementation is valid for the current environment. */
+  /** 检测当前VFS在当前环境下是否有效 */
   public abstract boolean isValid();
 
   /**
-   * Recursively list the full resource path of all the resources that are children of the
-   * resource identified by a URL.
+   * 递归列出url指定的资源的子项的列表
    *
    * @param url The URL that identifies the resource to list.
    * @param forPath The path to the resource that is identified by the URL. Generally, this is the
