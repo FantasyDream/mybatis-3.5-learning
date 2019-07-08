@@ -33,6 +33,7 @@ import java.util.jar.JarInputStream;
 
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
+import sun.tools.jar.resources.jar;
 
 /**
  * A default implementation of {@link VFS} that works for most application servers.
@@ -71,8 +72,6 @@ public class DefaultVFS extends VFS {
         try {
           if (isJar(url)) {
             // 有些JBoss VFS的版本可能提供一个Jar流,即使url引用的资源不是一个jar包
-            // Some versions of JBoss VFS might give a JAR stream even if the resource
-            // referenced by the URL isn't actually a JAR
             is = url.openStream();
             try (JarInputStream jarInput = new JarInputStream(is)) {
               if (log.isDebugEnabled()) {
@@ -88,14 +87,10 @@ public class DefaultVFS extends VFS {
             }
           }
           else {
-            /*
-             * Some servlet containers allow reading from directory resources like a
-             * text file, listing the child resources one per line. However, there is no
-             * way to differentiate between directory and file resources just by reading
-             * them. To work around that, as each line is read, try to look it up via
-             * the class loader as a child of the current resource. If any line fails
-             * then we assume the current resource is not a directory.
-             */
+            // 某些servlet容器允许从目录资源（如文本文件）中读取，每行列出一个子资源。
+            // 但是，只能通过读取它们来区分目录和文件资源。
+            // 要解决这个问题，在读取每一行时，尝试通过类加载器将其作为当前资源path的子项进行查找。
+            // 如果任何行失败，那么我们假设当前资源不是目录。
             is = url.openStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             List<String> lines = new ArrayList<>();
@@ -118,12 +113,9 @@ public class DefaultVFS extends VFS {
             }
           }
         } catch (FileNotFoundException e) {
-          /*
-           * For file URLs the openStream() call might fail, depending on the servlet
-           * container, because directories can't be opened for reading. If that happens,
-           * then list the directory directly instead.
-           */
+          // 对于文件URL，openStream()调用可能会失败，这取决于servlet容器，因为无法打开目录进行读取。如果发生这种情况，直接列出目录。
           if ("file".equals(url.getProtocol())) {
+            // 如果url是文件协议
             File file = new File(url.getFile());
             if (log.isDebugEnabled()) {
                 log.debug("Listing directory " + file.getAbsolutePath());
@@ -132,6 +124,7 @@ public class DefaultVFS extends VFS {
               if (log.isDebugEnabled()) {
                   log.debug("Listing " + url);
               }
+              // 如果file是目录,则直接列出该目录下的所有文件和目录名
               children = Arrays.asList(file.list());
             }
           }
@@ -141,13 +134,13 @@ public class DefaultVFS extends VFS {
           }
         }
 
-        // The URL prefix to use when recursively listing child resources
+        // 递归列出子资源时的前缀,即当前url的字符串形式
         String prefix = url.toExternalForm();
         if (!prefix.endsWith("/")) {
           prefix = prefix + "/";
         }
 
-        // Iterate over immediate children, adding files and recursing into directories
+        // 遍历子资源,并递归遍历子资源中的目录,将其加入到resources里
         for (String child : children) {
           String resourcePath = path + "/" + child;
           resources.add(resourcePath);
@@ -178,7 +171,7 @@ public class DefaultVFS extends VFS {
    * @throws IOException If I/O errors occur
    */
   protected List<String> listResources(JarInputStream jar, String path) throws IOException {
-    // Include the leading and trailing slash when matching names
+    // 匹配名称时需要在前后加上'/'
     if (!path.startsWith("/")) {
       path = "/" + path;
     }
@@ -186,22 +179,22 @@ public class DefaultVFS extends VFS {
       path = path + "/";
     }
 
-    // Iterate over the entries and collect those that begin with the requested path
+    // 遍历entry并收集以path开头的元素
     List<String> resources = new ArrayList<>();
     for (JarEntry entry; (entry = jar.getNextJarEntry()) != null;) {
       if (!entry.isDirectory()) {
-        // Add leading slash if it's missing
+        // 如果不是以'/'开头,则添加
         StringBuilder name = new StringBuilder(entry.getName());
         if (name.charAt(0) != '/') {
           name.insert(0, '/');
         }
 
-        // Check file name
+        // 检测name是否以path开头
         if (name.indexOf(path) == 0) {
           if (log.isDebugEnabled()) {
             log.debug("Found resource: " + name);
           }
-          // Trim leading slash
+          // 记录资源,并删除"/"
           resources.add(name.substring(1));
         }
       }

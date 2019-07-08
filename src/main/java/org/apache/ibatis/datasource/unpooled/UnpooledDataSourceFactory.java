@@ -41,21 +41,28 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
+    // 创建DataSource相应的MetaObject
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    // 遍历properties集合,该集合中配置了数据源需要的信息
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
         String value = properties.getProperty(propertyName);
+        // 以"driver."开头的配置项是对DataSource的配置,记录到driverProperties中保存
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
+        // 是否有该属性的setter方法
         String value = (String) properties.get(propertyName);
+        // 根据属性类型进行类型转换,主要是Integer,Long,Boolean三种类型的转换
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
+        // 设置datasource相关的属性值
         metaDataSource.setValue(propertyName, convertedValue);
       } else {
         throw new DataSourceException("Unknown DataSource property: " + propertyName);
       }
     }
     if (driverProperties.size() > 0) {
+      // 设置DataSource.driverProperties属性值
       metaDataSource.setValue("driverProperties", driverProperties);
     }
   }
@@ -65,9 +72,19 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     return dataSource;
   }
 
+  /**
+   * 将value的类型转为propertyName对应的Setter方法的参数类型
+   *
+   * @param metaDataSource dataSource对应的MetaObject对象
+   * @param propertyName 要设置的属性名
+   * @param value 要设置的属性值
+   * @return 转换完成的属性值
+   */
   private Object convertValue(MetaObject metaDataSource, String propertyName, String value) {
     Object convertedValue = value;
+    // 获取propertyName对应的setter方法的参数类型
     Class<?> targetType = metaDataSource.getSetterType(propertyName);
+    // 转换
     if (targetType == Integer.class || targetType == int.class) {
       convertedValue = Integer.valueOf(value);
     } else if (targetType == Long.class || targetType == long.class) {
@@ -75,6 +92,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     } else if (targetType == Boolean.class || targetType == boolean.class) {
       convertedValue = Boolean.valueOf(value);
     }
+    // 返回
     return convertedValue;
   }
 

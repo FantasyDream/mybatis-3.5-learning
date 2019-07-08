@@ -37,19 +37,38 @@ import org.apache.ibatis.io.Resources;
  */
 public class UnpooledDataSource implements DataSource {
 
+  /**
+   * 加载driver类时的类加载器
+   */
   private ClassLoader driverClassLoader;
+  /**
+   * 数据库连接的相关配置
+   */
   private Properties driverProperties;
+  /**
+   * 缓存所有已注册的数据库连接驱动
+   */
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
+  /**
+   * 下面四个是数据库连接的基本信息
+   */
   private String driver;
   private String url;
   private String username;
   private String password;
 
+  /**
+   * 是否自动提交,对应jdbc里的自动提交,如果是的话,则不能使用事务
+   */
   private Boolean autoCommit;
+  /**
+   * 事务隔离级别
+   */
   private Integer defaultTransactionIsolationLevel;
 
   static {
+    // 将再DriverManager中注册的JDBC Driver复制一份到UnpooledDataSource.registeredDrivers集合中
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
@@ -197,25 +216,30 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private Connection doGetConnection(Properties properties) throws SQLException {
+    // 初始化数据库驱动
     initializeDriver();
     Connection connection = DriverManager.getConnection(url, properties);
+    // 配置数据库连接的autoCommit和隔离级别
     configureConnection(connection);
     return connection;
   }
 
   private synchronized void initializeDriver() throws SQLException {
+    // 检测驱动是否已注册
     if (!registeredDrivers.containsKey(driver)) {
       Class<?> driverType;
       try {
         if (driverClassLoader != null) {
+          // 获得driver相应的类型
           driverType = Class.forName(driver, true, driverClassLoader);
         } else {
           driverType = Resources.classForName(driver);
         }
-        // DriverManager requires the driver to be loaded via the system ClassLoader.
-        // http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+        // 创建Driver对象
         Driver driverInstance = (Driver)driverType.newInstance();
+        // 注册驱动,DriverProxy是定义在UnpooledDataSource中的内部类,是Driver的静态代理类,只增加了自己的日志实现
         DriverManager.registerDriver(new DriverProxy(driverInstance));
+        // 将驱动添加到registeredDrivers集合中
         registeredDrivers.put(driver, driverInstance);
       } catch (Exception e) {
         throw new SQLException("Error setting driver on UnpooledDataSource. Cause: " + e);
@@ -225,9 +249,11 @@ public class UnpooledDataSource implements DataSource {
 
   private void configureConnection(Connection conn) throws SQLException {
     if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
+      // 设置事务是否自动提交
       conn.setAutoCommit(autoCommit);
     }
     if (defaultTransactionIsolationLevel != null) {
+      // 设置事务隔离级别
       conn.setTransactionIsolation(defaultTransactionIsolationLevel);
     }
   }

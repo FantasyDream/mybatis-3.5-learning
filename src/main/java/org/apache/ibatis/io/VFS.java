@@ -186,7 +186,7 @@ public abstract class VFS {
   public abstract boolean isValid();
 
   /**
-   * 递归列出url指定的资源的子项的列表
+   * 列出url指定的资源的子项的列表
    *
    * @param url The URL that identifies the resource to list.
    * @param forPath The path to the resource that is identified by the URL. Generally, this is the

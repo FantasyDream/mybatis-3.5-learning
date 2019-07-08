@@ -160,6 +160,12 @@ public class MetaObject {
     }
   }
 
+  /**
+   * 向 name对应的属性或者key或者下标 赋值 value
+   *
+   * @param name
+   * @param value
+   */
   public void setValue(String name, Object value) {
     // 为属性表达式创建对应的解析类
     PropertyTokenizer prop = new PropertyTokenizer(name);

@@ -41,18 +41,24 @@ public class JndiDataSourceFactory implements DataSourceFactory {
   public void setProperties(Properties properties) {
     try {
       InitialContext initCtx;
+      // 将以"env."开头的属性过滤出来组成新的Properties
       Properties env = getEnvProperties(properties);
       if (env == null) {
+        // 如果没有以"env."开头的属性,则直接新建InitialContext对象
         initCtx = new InitialContext();
       } else {
+        // 如果有,则用这些属性新建InitialContext对象
         initCtx = new InitialContext(env);
       }
 
+      // context.lookup()是从相应配置文件中加载参数名对应的值生成的对象
       if (properties.containsKey(INITIAL_CONTEXT)
           && properties.containsKey(DATA_SOURCE)) {
+        // 先生成context,再生成datasource
         Context ctx = (Context) initCtx.lookup(properties.getProperty(INITIAL_CONTEXT));
         dataSource = (DataSource) ctx.lookup(properties.getProperty(DATA_SOURCE));
       } else if (properties.containsKey(DATA_SOURCE)) {
+        // 直接生成datasource
         dataSource = (DataSource) initCtx.lookup(properties.getProperty(DATA_SOURCE));
       }
 
