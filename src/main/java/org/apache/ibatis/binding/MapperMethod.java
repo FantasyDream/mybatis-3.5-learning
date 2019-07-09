@@ -43,7 +43,13 @@ import java.util.*;
  */
 public class MapperMethod {
 
+  /**
+   * 记录了SQL语句的名称和类型
+   */
   private final SqlCommand command;
+  /**
+   * 方法签名，记录了Mapper接口中对应方法的相关信息
+   */
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
@@ -250,14 +256,18 @@ public class MapperMethod {
 
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
         Class<?> declaringClass, Configuration configuration) {
+      // sql语句的Id是由Mapper接口的名称与对应的方法名称组成的
       String statementId = mapperInterface.getName() + "." + methodName;
       if (configuration.hasStatement(statementId)) {
+        // 检测是否有该id的sql语句，如果有则取出并返回
         return configuration.getMappedStatement(statementId);
       } else if (mapperInterface.equals(declaringClass)) {
         return null;
       }
+      // 如果指定方法没有在当前接口中定义，则从其父接口中查询
       for (Class<?> superInterface : mapperInterface.getInterfaces()) {
         if (declaringClass.isAssignableFrom(superInterface)) {
+          // 递归调用
           MappedStatement ms = resolveMappedStatement(superInterface, methodName,
               declaringClass, configuration);
           if (ms != null) {

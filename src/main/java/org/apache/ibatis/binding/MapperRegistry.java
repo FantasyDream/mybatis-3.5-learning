@@ -33,7 +33,13 @@ import java.util.Set;
  */
 public class MapperRegistry {
 
+  /**
+   * Configuration对象,MyBatis全局唯一的配置对象,其中包含了所有配置信息
+   */
   private final Configuration config;
+  /**
+   * 记录了Mapper接口与对应MapperProxyFactory之间的关系
+   */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -42,32 +48,46 @@ public class MapperRegistry {
 
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+    // 查找type对应的MapperProxyFactory对象
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
+    // 若mapperProxyFactory为空，则抛出异常
     if (mapperProxyFactory == null) {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
+      // 创建实现了type接口的代理对象
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);
     }
   }
 
+  /**
+   * 该type是否在knownMappers中注册
+   * @param type
+   * @param <T>
+   * @return
+   */
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
 
+  /**
+   * mybatis初始化时调用,向knowMappers添加信息
+   * @param type Mapper的类型
+   * @param <T>
+   */
   public <T> void addMapper(Class<T> type) {
     if (type.isInterface()) {
+      // 若已经添加,则报异常
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
       boolean loadCompleted = false;
       try {
+        // 将Mapper接口的Class对象和对应的MapperProxyFactory对象添加到knownMappers中
         knownMappers.put(type, new MapperProxyFactory<>(type));
-        // It's important that the type is added before the parser is run
-        // otherwise the binding may automatically be attempted by the
-        // mapper parser. If the type is already known, it won't try.
+        // 在运行解析器之前添加类型非常重要，否则mapper解析器可能会自动尝试绑定。如果类型已添加到knownMappers中，则不会尝试。
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;

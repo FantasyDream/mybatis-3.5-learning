@@ -39,11 +39,30 @@ public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
 
+  /**
+   * 事务对应的数据库连接
+   */
   protected Connection connection;
+  /**
+   * 数据库连接所属的DataSource
+   */
   protected DataSource dataSource;
+  /**
+   * 事务隔离级别
+   */
   protected TransactionIsolationLevel level;
+  /**
+   * 是否自动提交
+   */
   protected boolean autoCommit;
 
+  /**
+   * 当通过数据源来创建该类的对象时，不初始化connection，通过dataSource.getConnection()方法初始化
+   *
+   * @param ds 数据源
+   * @param desiredLevel 事务级别
+   * @param desiredAutoCommit 是否自动提交
+   */
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit) {
     dataSource = ds;
     level = desiredLevel;
@@ -131,6 +150,10 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 打开数据库连接,是通过dataSource来过的数据库连接的,并根据属性赋值
+   * @throws SQLException
+   */
   protected void openConnection() throws SQLException {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
@@ -139,6 +162,7 @@ public class JdbcTransaction implements Transaction {
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+    // 设置期望的自动提交开关
     setDesiredAutoCommit(autoCommit);
   }
 
