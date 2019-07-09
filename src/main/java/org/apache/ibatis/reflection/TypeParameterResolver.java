@@ -15,9 +15,6 @@
  */
 package org.apache.ibatis.reflection;
 
-import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
-import sun.reflect.generics.reflectiveObjects.WildcardTypeImpl;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -27,9 +24,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * 该类是一个工具类,就是用来解析某个类的方法,方法返回值,字段的类型

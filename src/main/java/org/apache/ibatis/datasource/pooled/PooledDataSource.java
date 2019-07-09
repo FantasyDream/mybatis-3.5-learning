@@ -15,6 +15,11 @@
  */
 package org.apache.ibatis.datasource.pooled;
 
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
+import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -24,12 +29,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 import java.util.logging.Logger;
-
-import javax.sql.DataSource;
-
-import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 /**
  * This is a simple, synchronous, thread-safe database connection pool.
@@ -340,25 +339,32 @@ public class PooledDataSource implements DataSource {
           PooledConnection conn = state.activeConnections.remove(i - 1);
           // 设置为无效
           conn.invalidate();
-
+          // 获取真正的数据库连接对象
           Connection realConn = conn.getRealConnection();
+          // 回滚未提交的事务
           if (!realConn.getAutoCommit()) {
             realConn.rollback();
           }
+          // 关闭真正的数据库连接
           realConn.close();
         } catch (Exception e) {
           // ignore
         }
       }
+      // 遍历处理空闲连接
       for (int i = state.idleConnections.size(); i > 0; i--) {
         try {
+          // 从空闲连接集合中取出连接
           PooledConnection conn = state.idleConnections.remove(i - 1);
+          // 设置为无效
           conn.invalidate();
-
+          // 获得真正的数据库连接对象
           Connection realConn = conn.getRealConnection();
+          // 回滚未提交的事务
           if (!realConn.getAutoCommit()) {
             realConn.rollback();
           }
+          // 关闭真正的数据库连接
           realConn.close();
         } catch (Exception e) {
           // ignore
