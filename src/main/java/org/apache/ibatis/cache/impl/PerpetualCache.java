@@ -23,12 +23,19 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 这个是Cache接口的唯一实现,其他的实现都是装饰器,为这个实现添加新的功能
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
 
+  /**
+   * Cache对象的唯一标识
+   */
   private final String id;
 
+  /**
+   * 用于记录缓存项的Map对象
+   */
   private Map<Object, Object> cache = new HashMap<>();
 
   public PerpetualCache(String id) {

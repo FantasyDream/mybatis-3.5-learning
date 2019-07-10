@@ -30,6 +30,7 @@ public class MybatisTest {
         SqlSession session = sessionFactory.openSession();
         AdminMapper adminMapper = session.getMapper(AdminMapper.class);
         Admin admin = adminMapper.get(1L);
+        adminMapper.listAdmins();
         System.out.println(admin);
         admin.setEmail("7@q.com");
         adminMapper.update(admin);

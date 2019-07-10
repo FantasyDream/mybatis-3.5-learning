@@ -36,8 +36,17 @@ import org.apache.ibatis.cache.CacheException;
  */
 public class BlockingCache implements Cache {
 
+  /**
+   * 阻塞超时时长
+   */
   private long timeout;
+  /**
+   * 被装饰的cache对象
+   */
   private final Cache delegate;
+  /**
+   * 每个key都有对应的ReentrantLock对象
+   */
   private final ConcurrentHashMap<Object, ReentrantLock> locks;
 
   public BlockingCache(Cache delegate) {

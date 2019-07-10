@@ -18,6 +18,9 @@
         from t_admin
         where email = #{0}
     </select>
+    <select id="listAdmins" resultType="org.apache.ibatis.demo.model.Admin">
+        select * from t_admin
+    </select>
 
     <delete id="deleteById" parameterType="java.lang.Long">
         delete

@@ -3,6 +3,8 @@ package org.apache.ibatis.demo.mapper;
 
 import org.apache.ibatis.demo.model.Admin;
 
+import java.util.List;
+
 /**
  * @Description 管理员数据库操作类
  * @Author Zhang Diwen
@@ -51,4 +53,6 @@ public interface AdminMapper {
     Admin get(Long id);
 
     Admin getByEmail(String email);
+
+    List<Admin> listAdmins();
 }
