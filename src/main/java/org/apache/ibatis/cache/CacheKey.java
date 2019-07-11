@@ -33,11 +33,29 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLYER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+  /**
+   * 参与计算hashcode
+   */
   private final int multiplier;
+  /**
+   * CacheKey对象的hashcode
+   */
   private int hashcode;
+  /**
+   * 校验和
+   */
   private long checksum;
+  /**
+   * updateList的个数
+   */
   private int count;
-  // 8/21/2017 - Sonarlint flags this as needing to be marked transient.  While true if content is not serializable, this is not always true and thus should not be marked transient.
+  /**
+   * 该集合中的所有对象共同决定两个CacheKey是否相同,其中包括以下部分
+   * MappedStatement的Id
+   * RowBounds.offset和RowBounds.limit 结果集的范围
+   * sql语句,boundSql.getSql()返回的,可能有"?"占位符
+   * sql语句的实际参数,对应上一条的"?"
+   */
   private List<Object> updateList;
 
   public CacheKey() {
@@ -59,12 +77,13 @@ public class CacheKey implements Cloneable, Serializable {
   public void update(Object object) {
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
+    // 重新计算count.checksum和hashcode的值
     count++;
     checksum += baseHashCode;
     baseHashCode *= count;
 
     hashcode = multiplier * hashcode + baseHashCode;
-
+    // 将object添加到updateList集合中
     updateList.add(object);
   }
 
@@ -76,15 +95,18 @@ public class CacheKey implements Cloneable, Serializable {
 
   @Override
   public boolean equals(Object object) {
+    // 是否是同一对象
     if (this == object) {
       return true;
     }
+    // 是否类型相同
     if (!(object instanceof CacheKey)) {
       return false;
     }
 
     final CacheKey cacheKey = (CacheKey) object;
 
+    // 比较CacheKey的各个属性值
     if (hashcode != cacheKey.hashcode) {
       return false;
     }
@@ -95,6 +117,7 @@ public class CacheKey implements Cloneable, Serializable {
       return false;
     }
 
+    // 比较updateList中的每一项
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);
