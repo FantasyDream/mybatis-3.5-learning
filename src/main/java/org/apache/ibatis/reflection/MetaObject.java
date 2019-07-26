@@ -142,7 +142,13 @@ public class MetaObject {
     return objectWrapper.hasGetter(name);
   }
 
+  /**
+   * 根据属性表达式获取对应的值
+   * @param name
+   * @return
+   */
   public Object getValue(String name) {
+    // 为属性表达式创建对应的解析类
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
       // 若有子表达式,创建相应的MetaObject对象

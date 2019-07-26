@@ -27,7 +27,7 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
 /**
- * 该类是一个工具类,就是用来解析某个类的方法,方法返回值,字段的类型
+ * 该类是一个工具类,就是用来解析某个类的方法参数,方法返回值,字段的类型
  * @author Iwao AVE!
  */
 public class TypeParameterResolver {
@@ -199,10 +199,10 @@ public class TypeParameterResolver {
   /**
    * 解析TypeVariable类型，TypeVariable类型表示的是类型变量，如List<T>中的T就是类型变量
    *
-   * @param typeVar
-   * @param srcType
-   * @param declaringClass
-   * @return
+   * @param typeVar 类型变量
+   * @param srcType 解析的起始类
+   * @param declaringClass 定义要解析的字段或者方法的类
+   * @return 解析好的类
    */
   private static Type resolveTypeVar(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass) {
     Type result = null;
@@ -254,16 +254,18 @@ public class TypeParameterResolver {
   /**
    * 将要解析的字段在其父类中解析
    *
-   * @param typeVar
-   * @param srcType
-   * @param declaringClass
-   * @param clazz
-   * @param superclass
-   * @return
+   * @param typeVar 类型变量
+   * @param srcType 解析的起始类
+   * @param declaringClass 定义要解析的字段或者方法的类
+   * @param clazz 当前类或当前接口
+   * @param superclass 父类或父接口
+   * @return 解析好的类
    */
   private static Type scanSuperTypes(TypeVariable<?> typeVar, Type srcType, Class<?> declaringClass, Class<?> clazz, Type superclass) {
     if (superclass instanceof ParameterizedType) {
-        // 如果superclass是参数化类型，则强转，并取出它的原始类型和参数类型
+      // 强转为参数化类型，并取出它的原始类型和类型变量列表
+      // 这里解释下为什么能强转，这个方法是在当前类class无法解析类型变量的实际类型的时候才会调用的
+      // 这种情况下，它的类型变量就是从父类那继承的，那么class的父接口或者父类superclass必然存在类型变量。
       ParameterizedType parentAsType = (ParameterizedType) superclass;
       Class<?> parentAsClass = (Class<?>) parentAsType.getRawType();
       TypeVariable<?>[] parentTypeVars = parentAsClass.getTypeParameters();
@@ -271,7 +273,7 @@ public class TypeParameterResolver {
         // 如果srcType是参数化类型则需要进行转换，将可能存在的如List<T>中的T转为真正的Class对象
         parentAsType = translateParentTypeVars((ParameterizedType) srcType, clazz, parentAsType);
       }
-      // 如果字段或者方法所在的类与父类相同，即字段或者方法是在当前类中定义的，则找出parentAsType对应的
+      // 如果字段或者方法所在的类与父类相同，即字段或者方法是在当前类中定义的，则找出parentAsType与TypeVar对应的实际类型
       if (declaringClass == parentAsClass) {
         for (int i = 0; i < parentTypeVars.length; i++) {
           if (typeVar == parentTypeVars[i]) {

@@ -1,5 +1,7 @@
 package org.apache.ibatis.demo.reflector;
 
+import java.util.List;
+
 /**
  * TODO
  *
@@ -15,5 +17,10 @@ public class Child<T> extends Parent<T,T> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public List get() {
+        return null;
     }
 }

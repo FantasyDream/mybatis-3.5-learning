@@ -32,20 +32,26 @@ import org.xml.sax.SAXException;
  */
 public class XMLMapperEntityResolver implements EntityResolver {
 
+  /**
+   * 指定mybatis-config.xml文件和映射文件对应的DTD的SystemId
+   */
   private static final String IBATIS_CONFIG_SYSTEM = "ibatis-3-config.dtd";
   private static final String IBATIS_MAPPER_SYSTEM = "ibatis-3-mapper.dtd";
   private static final String MYBATIS_CONFIG_SYSTEM = "mybatis-3-config.dtd";
   private static final String MYBATIS_MAPPER_SYSTEM = "mybatis-3-mapper.dtd";
 
+  /**
+   * 指定mybatis-config.xml文件和映射文件对应的DTD文件的具体位置
+   */
   private static final String MYBATIS_CONFIG_DTD = "org/apache/ibatis/builder/xml/mybatis-3-config.dtd";
   private static final String MYBATIS_MAPPER_DTD = "org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd";
 
   /**
-   * Converts a public DTD into a local one
+   * 将公共DTD转换为本地DTD
    *
-   * @param publicId 在PUBLIC等号后面的url
+   * @param publicId 在PUBLIC后面的url
    * @param systemId 在publicId后面的url
-   * @return The InputSource for the DTD
+   * @return DTD对应的InputSource
    *
    * @throws org.xml.sax.SAXException If anything goes wrong
    */
@@ -56,8 +62,10 @@ public class XMLMapperEntityResolver implements EntityResolver {
         String lowerCaseSystemId = systemId.toLowerCase(Locale.ENGLISH);
         // 查找systemId指定的DTD文档，并调用getInputSource()来读取DTD文档
         if (lowerCaseSystemId.contains(MYBATIS_CONFIG_SYSTEM) || lowerCaseSystemId.contains(IBATIS_CONFIG_SYSTEM)) {
+          // 当要解析的是config文件时, 转到读取本地config文件的DTD
           return getInputSource(MYBATIS_CONFIG_DTD, publicId, systemId);
         } else if (lowerCaseSystemId.contains(MYBATIS_MAPPER_SYSTEM) || lowerCaseSystemId.contains(IBATIS_MAPPER_SYSTEM)) {
+          // 当要解析的时Mapper文件时, 转到读取本地Mapper文件的DTD
           return getInputSource(MYBATIS_MAPPER_DTD, publicId, systemId);
         }
       }
@@ -67,6 +75,13 @@ public class XMLMapperEntityResolver implements EntityResolver {
     }
   }
 
+  /**
+   * 读取DTD文档为InputSource
+   * @param path DTD文件所在的路径
+   * @param publicId PUBLIC后面的URL
+   * @param systemId publicId后面的URL
+   * @return DTD对应的InputSource
+   */
   private InputSource getInputSource(String path, String publicId, String systemId) {
     InputSource source = null;
     if (path != null) {

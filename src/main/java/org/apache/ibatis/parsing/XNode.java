@@ -31,6 +31,9 @@ import org.w3c.dom.NodeList;
  */
 public class XNode {
 
+  /**
+   * 节点的全部信息
+   */
   private final Node node;
   /**
    * node节点名称
@@ -366,6 +369,7 @@ public class XNode {
     Properties attributes = new Properties();
     NamedNodeMap attributeNodes = n.getAttributes();
     if (attributeNodes != null) {
+      // 遍历attributeNodes，对node的值进行处理，并生成Properties加入到attributes集合中返还
       for (int i = 0; i < attributeNodes.getLength(); i++) {
         Node attribute = attributeNodes.item(i);
         // 用PropertyParser处理属性中的占位符
@@ -377,8 +381,9 @@ public class XNode {
   }
 
   private String parseBody(Node node) {
+    // 获取node的文本内容,若没有则返回null
     String data = getBodyData(node);
-    // 判断是否为文本节点
+    // 判断是否为文本节点, 不是则遍历子节点，直至找到文本节点为止
     if (data == null) {
       NodeList children = node.getChildNodes();
       for (int i = 0; i < children.getLength(); i++) {

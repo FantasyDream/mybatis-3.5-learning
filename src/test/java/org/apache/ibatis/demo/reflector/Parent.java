@@ -1,5 +1,6 @@
 package org.apache.ibatis.demo.reflector;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -18,5 +19,9 @@ public class Parent<K,V> {
 
     public void setMap(Map<K, V> map) {
         this.map = map;
+    }
+
+    public Collection get(){
+        return null;
     }
 }

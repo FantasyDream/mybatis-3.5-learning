@@ -262,7 +262,7 @@ public class MetaClass {
         builder.append(".");
         // 为该属性创建对应的MetaClass对象
         MetaClass metaProp = metaClassForProperty(propertyName);
-        // 递归解析PropertyTokenizer.Children字段,并将结果转嫁到builder后面
+        // 递归解析PropertyTokenizer.Children字段,并将结果转接到builder后面
         metaProp.buildProperty(prop.getChildren(), builder);
       }
     } else {

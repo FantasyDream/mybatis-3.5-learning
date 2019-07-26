@@ -31,7 +31,13 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public class BeanWrapper extends BaseWrapper {
 
+  /**
+   * 被包装的对象
+   */
   private final Object object;
+  /**
+   * MetaClass，前面有介绍，是个将javaBean的属性及相关的操作抽象出来的类
+   */
   private final MetaClass metaClass;
 
   public BeanWrapper(MetaObject metaObject, Object object) {
@@ -153,7 +159,7 @@ public class BeanWrapper extends BaseWrapper {
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
-    // 获取属性相应的setter方法的参数类型
+    // 获取属性相应的setter方法的参数类型，即表达式表达属性的类型
     Class<?> type = getSetterType(prop.getName());
     try {
       // 通过objectFactory创建type的对象

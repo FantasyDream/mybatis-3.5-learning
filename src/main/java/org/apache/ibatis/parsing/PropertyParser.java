@@ -58,8 +58,17 @@ public class PropertyParser {
   }
 
   private static class VariableTokenHandler implements TokenHandler {
+    /**
+     * <properties>节点下定义的键值对， 用于替换占位符
+     */
     private final Properties variables;
+    /**
+     * 是否支持占位符中使用默认值的功能
+     */
     private final boolean enableDefaultValue;
+    /**
+     * 指定占位符和默认值之间的分隔符
+     */
     private final String defaultValueSeparator;
 
     private VariableTokenHandler(Properties variables) {
@@ -84,7 +93,7 @@ public class PropertyParser {
           if (separatorIndex >= 0) {
             // 获取占位符名称
             key = content.substring(0, separatorIndex);
-            // 货物默认值
+            // 获取默认值
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
           if (defaultValue != null) {
@@ -97,6 +106,7 @@ public class PropertyParser {
           return variables.getProperty(key);
         }
       }
+      // 如果既无默认值，variables也没有对应向，则返回原值
       return "${" + content + "}";
     }
   }

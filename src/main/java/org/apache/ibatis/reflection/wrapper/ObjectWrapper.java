@@ -101,7 +101,7 @@ public interface ObjectWrapper {
 
   /**
    * 为属性表达式指定的属性创建相应的MetaObject对象
-   * todo
+   *
    * @param name
    * @param prop
    * @param objectFactory
