@@ -217,7 +217,7 @@ public class TypeParameterResolver {
       throw new IllegalArgumentException("The 2nd arg must be Class or ParameterizedType, but was: " + srcType.getClass());
     }
 
-    // 判断clazz是否是type所在的类，即type是否是在clazz中定义的
+    // 判断clazz是否是typeVar所在的类，即typeVar是否是在clazz中定义的
     if (clazz == declaringClass) {
       // 获取typeVar的上边界，上边界即typeVar的类型所继承的类
       Type[] bounds = typeVar.getBounds();

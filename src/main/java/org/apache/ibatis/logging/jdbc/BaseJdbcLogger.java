@@ -54,7 +54,7 @@ public abstract class BaseJdbcLogger {
    */
   private final List<Object> columnNames = new ArrayList<>();
   /**
-   * 记录了preparedStatement.setXXX()方法设置的返回值
+   * 记录了preparedStatement.setXXX()方法设置的value值
    */
   private final List<Object> columnValues = new ArrayList<>();
   /**
@@ -66,7 +66,7 @@ public abstract class BaseJdbcLogger {
    */
   protected int queryStack;
 
-  /*
+  /**
    * Default constructor
    */
   public BaseJdbcLogger(Log log, int queryStack) {

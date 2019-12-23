@@ -33,7 +33,6 @@ import java.util.jar.JarInputStream;
 
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
-import sun.tools.jar.resources.jar;
 
 /**
  * A default implementation of {@link VFS} that works for most application servers.
@@ -71,7 +70,7 @@ public class DefaultVFS extends VFS {
         List<String> children = new ArrayList<>();
         try {
           if (isJar(url)) {
-            // 有些JBoss VFS的版本可能提供一个Jar流,即使url引用的资源不是一个jar包
+            // 有些JBoss VFS的版本可能提供一个Jar流,即url引用的资源不是一个jar包
             is = url.openStream();
             try (JarInputStream jarInput = new JarInputStream(is)) {
               if (log.isDebugEnabled()) {

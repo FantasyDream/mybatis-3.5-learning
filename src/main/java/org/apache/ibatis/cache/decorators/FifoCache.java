@@ -33,11 +33,11 @@ public class FifoCache implements Cache {
    */
   private final Cache delegate;
   /**
-   * 用于记录key进入缓存的现后顺序,使用的时LinkedList<Object>类型的集合对象
+   * 用于记录key进入缓存的现后顺序,使用的是LinkedList<Object>类型的集合对象
    */
   private final Deque<Object> keyList;
   /**
-   * 记录了缓存项的上线,超过该值,则需要清理最要的缓存项
+   * 记录了缓存项的上线,超过该值,则需要清理最老的缓存项
    */
   private int size;
 

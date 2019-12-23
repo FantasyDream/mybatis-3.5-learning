@@ -38,13 +38,37 @@ import org.apache.ibatis.reflection.SystemMetaObject;
  * @author Clinton Begin
  */
 public class CacheBuilder {
+  /**
+   * cache对象的唯一表时,一般情况下对应映射文件中的配置namespace
+   */
   private final String id;
+  /**
+   * Cache接口的真正实现类,默认是PerpetualCache
+   */
   private Class<? extends Cache> implementation;
+  /**
+   * cache装饰器结合,默认只有LruCache
+   */
   private final List<Class<? extends Cache>> decorators;
+  /**
+   * Cache大小
+   */
   private Integer size;
+  /**
+   * 清理时间周期
+   */
   private Long clearInterval;
+  /**
+   * 是否可读写
+   */
   private boolean readWrite;
+  /**
+   * 其他配置信息
+   */
   private Properties properties;
+  /**
+   * 是否阻塞
+   */
   private boolean blocking;
 
   public CacheBuilder(String id) {
@@ -90,17 +114,22 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    // 若implementation和decorators为空,则设置其默认值
     setDefaultImplementations();
+    // 根据implementation指定的类型,通过反射获取参数为String类型的构造方法,并通过改构造方法创建Cache对象
     Cache cache = newBaseCacheInstance(implementation, id);
+    // 根据<property>信息初始化Cache对象
     setCacheProperties(cache);
-    // issue #352, do not apply decorators to custom caches
+    // 检测cache对象的类型, 如果是PerpetualCache,则添加装饰器,如果是自定义类型,则不添加
     if (PerpetualCache.class.equals(cache.getClass())) {
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
+      // 添加MyBatis中提供的表准装饰器
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      // 如果不是LoggingCache的子类,则添加LoggingCache装饰器
       cache = new LoggingCache(cache);
     }
     return cache;

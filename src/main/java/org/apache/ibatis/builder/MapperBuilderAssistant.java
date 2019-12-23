@@ -113,7 +113,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
       }
+      // 记录当前命名空间使用的cache
       currentCache = cache;
+      // 表时已成功解析cache应用
       unresolvedCacheRef = false;
       return cache;
     } catch (IllegalArgumentException e) {
@@ -138,6 +140,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .properties(props)
         .build();
     configuration.addCache(cache);
+    // 记录当前命名空间使用的cache对象
     currentCache = cache;
     return cache;
   }

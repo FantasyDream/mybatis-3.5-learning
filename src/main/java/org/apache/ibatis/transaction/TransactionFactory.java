@@ -44,7 +44,7 @@ public interface TransactionFactory {
   Transaction newTransaction(Connection conn);
 
   /**
-   * 在指定的Datasource中获取去数据库连接,然后胡藏剑Transaction对象
+   * 在指定的Datasource中获取去数据库连接,然后创建Transaction对象
    * @param dataSource DataSource to take the connection from
    * @param level Desired isolation level
    * @param autoCommit Desired autocommit

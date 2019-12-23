@@ -50,7 +50,7 @@ public final class ConnectionLogger extends BaseJdbcLogger implements Invocation
         return method.invoke(this, params);
       }
       // 调用的是prepareStatement()方法,prepareCall()方法或者createStatement()方法,
-      // 则在创建现应Statement对象后,为其创建代理对象并返回该代理对象
+      // 则在创建相应Statement对象后,为其创建代理对象并返回该代理对象
       if ("prepareStatement".equals(method.getName())) {
         if (isDebugEnabled()) {
           // 输出日志

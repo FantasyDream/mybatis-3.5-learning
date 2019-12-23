@@ -30,7 +30,13 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public class ResultMapping {
 
+  /**
+   * 配置文件
+   */
   private Configuration configuration;
+  /**
+   * 节点对应的property属性,表时的是与该列进行映射的属性
+   */
   private String property;
   private String column;
   private Class<?> javaType;

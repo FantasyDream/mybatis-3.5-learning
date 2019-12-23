@@ -90,14 +90,20 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   public void parse() {
+    // 判单是否已经加载过改映射文件
     if (!configuration.isResourceLoaded(resource)) {
+      // 处理<mapper>节点
       configurationElement(parser.evalNode("/mapper"));
+      // 讲resource添加到Configuration.loadedResources集合中保存,记录器已经加载过
       configuration.addLoadedResource(resource);
+      // 注册mapper接口
       bindMapperForNamespace();
     }
-
+    // 处理configurationElement()方法中解析失败的<resultMap>节点
     parsePendingResultMaps();
+    // 处理configurationElement()方法中解析失败的<cache-ref>节点
     parsePendingCacheRefs();
+    // 处理configurationElement()方法中解析失败的sql语句节点
     parsePendingStatements();
   }
 
@@ -107,16 +113,24 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
+      // 获取namespace字段
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.equals("")) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      // 记录当前命名空间
       builderAssistant.setCurrentNamespace(namespace);
+      // 解析<cache-fre>节点
       cacheRefElement(context.evalNode("cache-ref"));
+      // 解析<cache>节点
       cacheElement(context.evalNode("cache"));
+      // 解析<parameterMap>节点(该节点已废弃,不再推荐使用)
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      // 解析<resultMap>节点
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析<sql>节点
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析<select><insert><update><delete>节点
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -200,15 +214,19 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void cacheElement(XNode context) {
     if (context != null) {
+      // 获取并解析type属性,默认为PERPETUAL
       String type = context.getStringAttribute("type", "PERPETUAL");
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+      // 获取并解析eviction属性,默认为LRU
       String eviction = context.getStringAttribute("eviction", "LRU");
       Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+      // 获取cache的其他属性
       Long flushInterval = context.getLongAttribute("flushInterval");
       Integer size = context.getIntAttribute("size");
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
       boolean blocking = context.getBooleanAttribute("blocking", false);
       Properties props = context.getChildrenAsProperties();
+      // 通过builderAssistant创建Cache对象,并添加到Configuration.caches集合中保存
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }

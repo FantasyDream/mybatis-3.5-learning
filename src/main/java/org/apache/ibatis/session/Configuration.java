@@ -914,6 +914,9 @@ public class Configuration {
       return this;
     }
 
+    /**
+     * put操作会讲key转变成shortKey来存储
+     */
     @SuppressWarnings("unchecked")
     public V put(String key, V value) {
       if (containsKey(key)) {
@@ -921,16 +924,21 @@ public class Configuration {
             + (conflictMessageProducer == null ? "" : conflictMessageProducer.apply(super.get(key), value)));
       }
       if (key.contains(".")) {
+        // 按照"."将key切分成数组,并将数组的最后一项最为shortKey
         final String shortKey = getShortName(key);
         if (super.get(shortKey) == null) {
           super.put(shortKey, value);
         } else {
+          // 如果改shortKey已经存在, 则将value修改成Ambiguity对象
           super.put(shortKey, (V) new Ambiguity(shortKey));
         }
       }
       return super.put(key, value);
     }
 
+    /**
+     * get时如果value为空或者有二义性,则抛出异常
+     */
     public V get(Object key) {
       V value = super.get(key);
       if (value == null) {
@@ -948,6 +956,9 @@ public class Configuration {
       return keyParts[keyParts.length - 1];
     }
 
+    /**
+     * 用于记录strictMap的存在二义性的key,subject为key值
+     */
     protected static class Ambiguity {
       final private String subject;
 

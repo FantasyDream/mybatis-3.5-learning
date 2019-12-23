@@ -83,7 +83,7 @@ public class PooledDataSource implements DataSource {
    */
   protected int poolPingConnectionsNotUsedFor;
   /**
-   * 根据URL,username和password 生成一个hash值,该哈希值用于表值这当前的连接池,在构造函数中初始化
+   * 根据URL,username和password 生成一个hash值,该哈希值用于标识着当前的连接池,在构造函数中初始化
    */
   private int expectedConnectionTypeCode;
 
@@ -575,9 +575,11 @@ public class PooledDataSource implements DataSource {
    * @return True if the connection is still usable
    */
   protected boolean pingConnection(PooledConnection conn) {
+    // 记录ping操作是否成功
     boolean result = true;
 
     try {
+      // 检测连接是否关闭
       result = !conn.getRealConnection().isClosed();
     } catch (SQLException e) {
       if (log.isDebugEnabled()) {

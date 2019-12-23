@@ -54,8 +54,8 @@ import org.apache.ibatis.io.Resources;
 public final class TypeHandlerRegistry {
 
   /**
-   * 记录JdbcType与TypeHandler之间的对应关系,其中JdbcType是一个美剧类型,它定义对应的JDBC类型
-   * 该集合主要用于从结果集读取数据时,将数据c从Jdbc类型转换成Java类型
+   * 记录JdbcType与TypeHandler之间的对应关系,其中JdbcType是一个枚举类型,它定义对应的JDBC类型
+   * 该集合主要用于从结果集读取数据时,将数据从Jdbc类型转换成Java类型
    */
   private final Map<JdbcType, TypeHandler<?>> JDBC_TYPE_HANDLER_MAP = new EnumMap<>(JdbcType.class);
   /**

@@ -28,21 +28,21 @@ public interface TypeHandler<T> {
   /**
    * 通过预处理语句绑定参数，我们传入参数，和对应的jdbcType，会由方法自动完成Java类型到jdbcType的转换
    *
-   * @param ps
-   * @param i
-   * @param parameter
-   * @param jdbcType
-   * @throws SQLException
+   * @param ps 预处理语句
+   * @param i 参数序号
+   * @param parameter 要传入的数据
+   * @param jdbcType 参数对应的jdbcType
+   * @throws SQLException sql异常
    */
   void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**
    * 这三个方法，分别使用不同的方式获得结果集，结果集会从jdbcType转成Java类型
    *
-   * @param rs
-   * @param columnName
-   * @return
-   * @throws SQLException
+   * @param rs 结果集
+   * @param columnName 列名
+   * @return 该列对应的数据对象
+   * @throws SQLException sql异常
    */
   T getResult(ResultSet rs, String columnName) throws SQLException;
 

@@ -33,7 +33,7 @@ public class LruCache implements Cache {
    */
   private final Cache delegate;
   /**
-   * 这个会被实例化为LinkedHashMap<Object,Object>,这事一个有序的HashMap,用于记录key最近的使用情况
+   * 这个会被实例化为LinkedHashMap<Object,Object>,这是一个有序的HashMap,用于记录key最近的使用情况
    */
   private Map<Object, Object> keyMap;
   /**

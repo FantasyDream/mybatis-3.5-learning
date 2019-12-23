@@ -34,7 +34,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 
   private static final long serialVersionUID = -6424540398559729838L;
   /**
-   * 记录了关联额sqlsession对象
+   * 记录了关联的sqlsession对象
    */
   private final SqlSession sqlSession;
   /**
@@ -79,7 +79,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   }
 
   /**
-   * 创建Lookup对象，并通过lookup获得没有被从写的methodHandle，并执行该方法，目的是为了直接执行接口中的default方法
+   * 创建Lookup对象，并通过lookup获得没有被重写的methodHandle，并执行该方法，目的是为了直接执行接口中的default方法
    * 这里的MethodHandle是jdk7引入的，比Method更轻量的一个代表 方法 的对象，对象的获取也更加灵活
    * 一般用于基于JVM的动态类型语言使用，jdk8的新特性也用到了这个
    * Lookup则是MethodHandle的工厂类，根据参数的不同生成不同的MethodHandle对象
