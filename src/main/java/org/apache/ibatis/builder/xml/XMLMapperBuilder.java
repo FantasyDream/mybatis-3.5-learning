@@ -273,37 +273,51 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings, Class<?> enclosingType) throws Exception {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
+    // 获取<resultMap>的id属性,默认值会拼装所有父节点的id或value或Property属性值
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());
+    // 获取<resultMap>节点的type属性,表示结果集将被映射成type指定类型的对象,注意其默认值
     String type = resultMapNode.getStringAttribute("type",
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
+    // 获取extends属性,该属性指定了该<resultMap>节点的继承关系
     String extend = resultMapNode.getStringAttribute("extends");
+    // 获取autoMapping属性, 将该属性设置为true,则自动查找与列名同名的属性名,并调用setter方法
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
+    // 解析type的类型
     Class<?> typeClass = resolveClass(type);
     if (typeClass == null) {
+      // 如果type为null, 则继承内联的类型
       typeClass = inheritEnclosingType(resultMapNode, enclosingType);
     }
     Discriminator discriminator = null;
+    // 用于记录解析的结果
     List<ResultMapping> resultMappings = new ArrayList<>();
     resultMappings.addAll(additionalResultMappings);
+    // 处理<resultMap>的子节点
     List<XNode> resultChildren = resultMapNode.getChildren();
     for (XNode resultChild : resultChildren) {
       if ("constructor".equals(resultChild.getName())) {
+        // 处理<constructor>节点
         processConstructorElement(resultChild, typeClass, resultMappings);
       } else if ("discriminator".equals(resultChild.getName())) {
+        // 处理<discriminator>节点
         discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
       } else {
+        // 处理<id>,<result>,<association>,<collection>等节点
         List<ResultFlag> flags = new ArrayList<>();
         if ("id".equals(resultChild.getName())) {
+          // 如果是<id>节点,则向flags集合中添加ResultFlag.ID
           flags.add(ResultFlag.ID);
         }
+        // 创建resultMapping对象, 并添加到resultMappings集合中保存
         resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
       }
     }
     ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
     try {
+      // 创建ResultMap对象,并添加到Configuration.resultMaps集合中,该集合是StrictMap类型
       return resultMapResolver.resolve();
     } catch (IncompleteElementException  e) {
       configuration.addIncompleteResultMap(resultMapResolver);
@@ -328,28 +342,36 @@ public class XMLMapperBuilder extends BaseBuilder {
     List<XNode> argChildren = resultChild.getChildren();
     for (XNode argChild : argChildren) {
       List<ResultFlag> flags = new ArrayList<>();
+      // 添加CONSTRUCTOR标志
       flags.add(ResultFlag.CONSTRUCTOR);
+      // 对于<idArg>节点,添加ID标志
       if ("idArg".equals(argChild.getName())) {
         flags.add(ResultFlag.ID);
       }
+      // 创建ResultMapping对象,并添加到resultMappings集合中
       resultMappings.add(buildResultMappingFromContext(argChild, resultType, flags));
     }
   }
 
   private Discriminator processDiscriminatorElement(XNode context, Class<?> resultType, List<ResultMapping> resultMappings) throws Exception {
+    // 获取属性
     String column = context.getStringAttribute("column");
     String javaType = context.getStringAttribute("javaType");
     String jdbcType = context.getStringAttribute("jdbcType");
     String typeHandler = context.getStringAttribute("typeHandler");
+    // 解析javaType,typeHandler,jdbcType类型
     Class<?> javaTypeClass = resolveClass(javaType);
     Class<? extends TypeHandler<?>> typeHandlerClass = resolveClass(typeHandler);
     JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
     Map<String, String> discriminatorMap = new HashMap<>();
     for (XNode caseChild : context.getChildren()) {
       String value = caseChild.getStringAttribute("value");
+      // 创建嵌套的ResultMap对象
       String resultMap = caseChild.getStringAttribute("resultMap", processNestedResultMappings(caseChild, resultMappings, resultType));
+      // 记录该列值与对应选择的ResultMap的id
       discriminatorMap.put(value, resultMap);
     }
+    // 创建Discriminator对象
     return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
   }
 
@@ -362,10 +384,14 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void sqlElement(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
+      // 获取节点的属性
       String databaseId = context.getStringAttribute("databaseId");
       String id = context.getStringAttribute("id");
+      // 为id添加命名空间
       id = builderAssistant.applyCurrentNamespace(id, false);
+      // 检测<sql>的databaseId与当前configuration中记录的databaseId是否一致
       if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
+        // 记录到XMLMapperBuilder.sqlFragments中保存
         sqlFragments.put(id, context);
       }
     }
@@ -393,15 +419,19 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private ResultMapping buildResultMappingFromContext(XNode context, Class<?> resultType, List<ResultFlag> flags) throws Exception {
     String property;
+    // 获取该节点的property属性值，若是通过<constructor>来构建, 则获取name属性
     if (flags.contains(ResultFlag.CONSTRUCTOR)) {
       property = context.getStringAttribute("name");
     } else {
       property = context.getStringAttribute("property");
     }
+    // 获取该节点的各个属性
     String column = context.getStringAttribute("column");
     String javaType = context.getStringAttribute("javaType");
     String jdbcType = context.getStringAttribute("jdbcType");
     String nestedSelect = context.getStringAttribute("select");
+    // 如果未指定<association>节点的resultMap属性,则是匿名的嵌套映射,
+    // 需要通过processNestedResultMappings()方法解析该匿名的嵌套映射
     String nestedResultMap = context.getStringAttribute("resultMap",
         processNestedResultMappings(context, Collections.<ResultMapping> emptyList(), resultType));
     String notNullColumn = context.getStringAttribute("notNullColumn");
@@ -410,6 +440,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     String resultSet = context.getStringAttribute("resultSet");
     String foreignColumn = context.getStringAttribute("foreignColumn");
     boolean lazy = "lazy".equals(context.getStringAttribute("fetchType", configuration.isLazyLoadingEnabled() ? "lazy" : "eager"));
+    // 解析javaType,TypeHandler和jdbcType
     Class<?> javaTypeClass = resolveClass(javaType);
     Class<? extends TypeHandler<?>> typeHandlerClass = resolveClass(typeHandler);
     JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
@@ -420,6 +451,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     if ("association".equals(context.getName())
         || "collection".equals(context.getName())
         || "case".equals(context.getName())) {
+      // 指定了select属性之后,不会生成嵌套的ResultMap对象
       if (context.getStringAttribute("select") == null) {
         validateCollection(context, enclosingType);
         ResultMap resultMap = resultMapElement(context, resultMappings, enclosingType);

@@ -183,17 +183,26 @@ public class MapperBuilderAssistant extends BaseBuilder {
       Discriminator discriminator,
       List<ResultMapping> resultMappings,
       Boolean autoMapping) {
+    // ResultMap的完整id时"namespace.id"的格式
     id = applyCurrentNamespace(id, false);
+    // 获取被继承的ResultMap的完整id,也就是父ResultMap对象的完整id
     extend = applyCurrentNamespace(extend, true);
 
     if (extend != null) {
+      // extend属性的处理
+      // 检查configuration.resultMaps集合中是否存在被继承的ResultMap对象
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+
+      // 获取需要被继承的ResultMap对象
       ResultMap resultMap = configuration.getResultMap(extend);
+      // 获取父ResultMap对象中记录的ResultMapping集合
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
+      // 删除需要被覆盖的ResultMapping集合
       extendedResultMappings.removeAll(resultMappings);
-      // Remove parent constructor if this resultMap declares a constructor.
+      // 如果当前<resultMap>节点定义了<constructor>节点,则不需要使用父ResultMap中记录的相应<constructor>节点
+      // 所以会将父ResultMap中的<constructor>节点删除
       boolean declaresConstructor = false;
       for (ResultMapping resultMapping : resultMappings) {
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
@@ -209,8 +218,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
           }
         }
       }
+      // 添加需要被继承下来的ResultMapping对象集合
       resultMappings.addAll(extendedResultMappings);
     }
+    // 创建ResultMap对象,并添加到Configuration.resultMaps集合中保存
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
         .discriminator(discriminator)
         .build();
@@ -376,9 +387,13 @@ public class MapperBuilderAssistant extends BaseBuilder {
       String resultSet,
       String foreignColumn,
       boolean lazy) {
+    // 解析javaType和typeHandler
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
+    // 解析column属性值,当column是"{prop1=col1, prop2=col2}"形式时,会解析成ResultMapping对象集合,
+    // column的这种形式主要用于嵌套查询的参数传递
     List<ResultMapping> composites = parseCompositeColumnName(column);
+    // 创建ResultMapping对象,并设置字段
     return new ResultMapping.Builder(configuration, property, column, javaTypeClass)
         .jdbcType(jdbcType)
         .nestedQueryId(applyCurrentNamespace(nestedSelect, true))

@@ -35,21 +35,62 @@ public class ResultMapping {
    */
   private Configuration configuration;
   /**
-   * 节点对应的property属性,表时的是与该列进行映射的属性
+   * 对应节点的property属性,表时的是与该列进行映射的属性
    */
   private String property;
+  /**
+   * 对应节点的column属性,表示的是从数据库中得到的列名或是列名的别名
+   */
   private String column;
+  /**
+   * 对应节点的javaType属性，表示的是一个JavaBean的完全限定名，或一个类型别名
+   */
   private Class<?> javaType;
+  /**
+   * 对应节点的jdbcType属性，表示的是进行映射的列的jdbc类型
+   */
   private JdbcType jdbcType;
+  /**
+   * 对应系欸但的typeHandler属性，表示的是类型处理器，他会覆盖默认的类型处理器
+   */
   private TypeHandler<?> typeHandler;
+  /**
+   * 对应节点的resultMap属性，该属性通过id引用了另外一个<resultMap>节点定义,
+   * 它负责将结果集 中的一部分列映射成其他相关联的结果对象
+   */
   private String nestedResultMapId;
+  /**
+   * 对应节点的select属性, 该属性通过id引用了一个<select>节点定义,
+   * 它会把指定列的值掺入select属性指定的select语句中作为参数进行查询.
+   */
   private String nestedQueryId;
+  /**
+   * 对应节点的notNullColumn属性拆分后的结果
+   */
   private Set<String> notNullColumns;
+  /**
+   * 对应节点的columnPrefix属性
+   */
   private String columnPrefix;
+  /**
+   * 处理后的标志,标志共两个: id和constructor
+   */
   private List<ResultFlag> flags;
+  /**
+   * 对应节点的column属性拆分后生成的结果,composites.size>0会使column为null
+   */
   private List<ResultMapping> composites;
+  /**
+   * 对应节点的resultSet属性
+   */
   private String resultSet;
+  /**
+   * 对应节点的foreignColumn属性
+   */
   private String foreignColumn;
+  /**
+   * 是否延迟加载,对应节点的fetchType属性
+   */
   private boolean lazy;
 
   ResultMapping() {
