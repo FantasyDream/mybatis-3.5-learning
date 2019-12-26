@@ -54,13 +54,14 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   public void parseStatementNode() {
+    // 获取sql节点的id以及databaseId属性
     String id = context.getStringAttribute("id");
     String databaseId = context.getStringAttribute("databaseId");
-
+    //若databaseId与当前使用的数据库不配, 或存在id相同但databaseId不为空的SQL节点,则不再加载该sql节点
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
-
+    // 获取sql节点的其他属性
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
     String parameterMap = context.getStringAttribute("parameterMap");
@@ -76,6 +77,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
 
+    // 获取SqlType
     String nodeName = context.getNode().getNodeName();
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
@@ -83,14 +85,14 @@ public class XMLStatementBuilder extends BaseBuilder {
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
-    // Include Fragments before parsing
+    // 在解析SQL语句之前,先处理其中的<include>节点
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
     includeParser.applyIncludes(context.getNode());
 
-    // Parse selectKey after includes and remove them.
+    // 处理<selectKey>节点
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
 
-    // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
+    // 处理完<include>和<selectKey>节点后,处理sql节点
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
     String resultSets = context.getStringAttribute("resultSets");
     String keyProperty = context.getStringAttribute("keyProperty");
